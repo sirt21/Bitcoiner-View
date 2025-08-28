@@ -1,0 +1,36 @@
+/* Explanation Section */
+.explanation-section {
+    background: rgba(20, 20, 20, 0.8);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 15px 20px;
+    margin-top: 10px;
+}
+
+.explanation-content {
+    max-width: 800px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.explanation-content h3 {
+    color: #f7931a;
+    font-size: 0.95rem;
+    margin-bottom: 10px;
+    font-weight: 500;
+}
+
+.explanation-grid {
+    display: flex;
+    justify-content: center;
+}
+
+.explanation-item {
+    font-size: 0.8rem;
+    color: #888;
+    line-height: 1.4;
+}
+
+.explanation-item strong {
+    color: #f7931a;
+    font-weight: 500;
+}

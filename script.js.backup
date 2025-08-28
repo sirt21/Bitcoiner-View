@@ -1,0 +1,587 @@
+class BitcoinPriceTracker {
+    constructor() {
+        this.chart = null;
+        this.currentInterval = '1D';
+        this.priceData = {};
+        this.currentTab = 'bitcoin-usd';
+        
+        this.setupTabSwitching();
+        this.initializeChart();
+        this.setupEventListeners();
+        this.fetchPriceData();
+        this.updateTimestamp();
+        
+        // Update price data every 30 seconds
+        setInterval(() => {
+            this.fetchPriceData();
+            this.updateTimestamp();
+        }, 30000);
+    }
+    
+    setupTabSwitching() {
+        const tabButtons = document.querySelectorAll('.tab-btn');
+        const tabContents = document.querySelectorAll('.tab-content');
+        
+        tabButtons.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const targetTab = e.currentTarget.dataset.tab;
+                
+                // Remove active class from all tabs and contents
+                tabButtons.forEach(b => b.classList.remove('active'));
+                tabContents.forEach(c => c.classList.remove('active'));
+                
+                // Add active class to clicked tab and corresponding content
+                e.currentTarget.classList.add('active');
+                document.getElementById(targetTab).classList.add('active');
+                
+                this.currentTab = targetTab;
+                
+                // Load stocks data when switching to stocks tab
+                if (targetTab === 'stocks-btc') {
+                    this.loadStocksData();
+                    showNotification('Loading top 10 stocks...', 'info');
+                } else {
+                    showNotification('Bitcoin/USD tab active', 'success');
+                }
+            });
+        });
+    }
+    
+    async loadStocksData() {
+        const stocksGrid = document.getElementById('stocksGrid');
+        
+        // Top 10 stocks by market cap (as of 2024)
+        const topStocks = [
+            { symbol: 'AAPL', name: 'Apple Inc.', logo: 'A' },
+            { symbol: 'MSFT', name: 'Microsoft Corp.', logo: 'M' },
+            { symbol: 'GOOGL', name: 'Alphabet Inc.', logo: 'G' },
+            { symbol: 'AMZN', name: 'Amazon.com Inc.', logo: 'A' },
+            { symbol: 'NVDA', name: 'NVIDIA Corp.', logo: 'N' },
+            { symbol: 'TSLA', name: 'Tesla Inc.', logo: 'T' },
+            { symbol: 'META', name: 'Meta Platforms', logo: 'M' },
+            { symbol: 'BRK.B', name: 'Berkshire Hathaway', logo: 'B' },
+            { symbol: 'V', name: 'Visa Inc.', logo: 'V' },
+            { symbol: 'JNJ', name: 'Johnson & Johnson', logo: 'J' }
+        ];
+        
+        try {
+            // Clear loading card
+            stocksGrid.innerHTML = '';
+            
+            // Get current Bitcoin price for conversion
+            const btcPrice = this.priceData.usd || 45250.50; // Use current BTC price or fallback
+            
+            // Create stock cards
+            for (const stock of topStocks) {
+                const stockCard = this.createStockCard(stock);
+                stocksGrid.appendChild(stockCard);
+                
+                // Fetch stock price data and convert to BTC
+                this.fetchStockPriceInBTC(stock.symbol, stockCard, btcPrice);
+            }
+            
+        } catch (error) {
+            console.error('Error loading stocks:', error);
+            stocksGrid.innerHTML = `
+                <div class="stock-card loading-card">
+                    <i class="fas fa-exclamation-triangle" style="color: #ff6b6b; font-size: 24px;"></i>
+                    <p>Error loading stocks. Please try again.</p>
+                </div>
+            `;
+        }
+    }
+    
+    createStockCard(stock) {
+        const card = document.createElement('div');
+        card.className = 'stock-card';
+        card.dataset.symbol = stock.symbol;
+        
+        card.innerHTML = `
+            <div class="stock-header">
+                <div class="stock-logo">${stock.logo}</div>
+                <div class="stock-info">
+                    <h3>${stock.name}</h3>
+                    <span class="stock-symbol">${stock.symbol}</span>
+                </div>
+            </div>
+            
+            <div class="stock-price">
+                <span class="price-value">Loading...</span>
+                <div class="price-change">
+                    <div class="change-value">--</div>
+                    <div class="change-percent">--</div>
+                </div>
+            </div>
+            
+            <div class="stock-metrics">
+                <span>
+                    <div class="metric-label">Volume</div>
+                    <div class="metric-value">--</div>
+                </span>
+                <span>
+                    <div class="metric-label">P/E</div>
+                    <div class="metric-value">--</div>
+                </span>
+                <span>
+                    <div class="metric-label">Mkt Cap (bits)</div>
+                    <div class="metric-value">--</div>
+                </span>
+            </div>
+        `;
+        
+        // Add click event to open individual chart
+        card.addEventListener('click', (e) => {
+            e.preventDefault();
+            console.log(`Clicked on ${stock.symbol} - ${stock.name}`);
+            this.openStockChart(stock.symbol, stock.name);
+        });
+        
+        // Add cursor pointer style
+        card.style.cursor = 'pointer';
+        
+        return card;
+    }
+    
+    async fetchStockPriceInBTC(symbol, cardElement, btcPrice) {
+        try {
+            // Simulate API call with mock data for demo (USD prices)
+            const mockPricesUSD = {
+                'AAPL': { price: 175.43, change: 2.15, changePercent: 1.24, volume: '45.2M', pe: '28.5', marketCap: '2.7T' },
+                'MSFT': { price: 378.85, change: -1.23, changePercent: -0.32, volume: '23.1M', pe: '32.1', marketCap: '2.8T' },
+                'GOOGL': { price: 138.21, change: 3.45, changePercent: 2.56, volume: '28.7M', pe: '25.8', marketCap: '1.7T' },
+                'AMZN': { price: 145.86, change: -0.87, changePercent: -0.59, volume: '35.4M', pe: '45.2', marketCap: '1.5T' },
+                'NVDA': { price: 875.28, change: 15.67, changePercent: 1.82, volume: '42.8M', pe: '65.3', marketCap: '2.2T' },
+                'TSLA': { price: 248.50, change: -5.23, changePercent: -2.06, volume: '78.9M', pe: '62.1', marketCap: '790B' },
+                'META': { price: 298.58, change: 4.12, changePercent: 1.40, volume: '19.6M', pe: '24.7', marketCap: '760B' },
+                'BRK.B': { price: 421.35, change: 1.85, changePercent: 0.44, volume: '3.2M', pe: '8.9', marketCap: '920B' },
+                'V': { price: 267.89, change: 0.95, changePercent: 0.36, volume: '6.8M', pe: '33.2', marketCap: '580B' },
+                'JNJ': { price: 156.73, change: -0.45, changePercent: -0.29, volume: '8.1M', pe: '15.4', marketCap: '420B' }
+            };
+            
+            // Simulate network delay
+            await new Promise(resolve => setTimeout(resolve, Math.random() * 1000 + 500));
+            
+            const dataUSD = mockPricesUSD[symbol];
+            if (dataUSD) {
+                // Convert USD prices to bits
+                const dataBits = this.convertUSDtoBits(dataUSD, btcPrice);
+                this.updateStockCardBits(cardElement, dataBits);
+            }
+            
+        } catch (error) {
+            console.error(`Error fetching price for ${symbol}:`, error);
+            cardElement.querySelector('.price-value').textContent = 'Error';
+        }
+    }
+    
+    convertUSDtoBits(usdData, btcPrice) {
+        // 1 BTC = 1,000,000 bits
+        const bitsPerBTC = 1000000;
+        return {
+            price: ((usdData.price / btcPrice) * bitsPerBTC).toFixed(2), // Convert to bits with 2 decimal places
+            change: ((usdData.change / btcPrice) * bitsPerBTC).toFixed(2),
+            changePercent: usdData.changePercent, // Percentage stays the same
+            volume: usdData.volume,
+            pe: usdData.pe,
+            marketCapBits: this.convertMarketCapToBits(usdData.marketCap, btcPrice)
+        };
+    }
+    
+    convertMarketCapToBits(marketCapStr, btcPrice) {
+        // Convert market cap from USD to bits (1 BTC = 1,000,000 bits)
+        const multipliers = { 'T': 1e12, 'B': 1e9, 'M': 1e6, 'K': 1e3 };
+        const match = marketCapStr.match(/^([\d.]+)([TBMK])$/);
+        const bitsPerBTC = 1000000;
+        
+        if (match) {
+            const value = parseFloat(match[1]);
+            const multiplier = multipliers[match[2]];
+            const usdValue = value * multiplier;
+            const bitsValue = (usdValue / btcPrice) * bitsPerBTC;
+            
+            if (bitsValue >= 1e12) {
+                return (bitsValue / 1e12).toFixed(2) + 'T';
+            } else if (bitsValue >= 1e9) {
+                return (bitsValue / 1e9).toFixed(2) + 'B';
+            } else if (bitsValue >= 1e6) {
+                return (bitsValue / 1e6).toFixed(2) + 'M';
+            } else if (bitsValue >= 1e3) {
+                return (bitsValue / 1e3).toFixed(2) + 'K';
+            } else {
+                return bitsValue.toFixed(0);
+            }
+        }
+        return marketCapStr;
+    }
+    
+    updateStockCardBits(cardElement, data) {
+        const priceValue = cardElement.querySelector('.price-value');
+        const changeValue = cardElement.querySelector('.change-value');
+        const changePercent = cardElement.querySelector('.change-percent');
+        const priceChange = cardElement.querySelector('.price-change');
+        const metrics = cardElement.querySelectorAll('.metric-value');
+        
+        // Display prices in bits
+        priceValue.textContent = `${data.price} bits`;
+        changeValue.textContent = data.change >= 0 ? `+${data.change}` : `-${Math.abs(data.change)}`;
+        changePercent.textContent = data.changePercent >= 0 ? `+${data.changePercent}%` : `${data.changePercent}%`;
+        
+        // Set color based on change
+        priceChange.className = data.change >= 0 ? 'price-change positive' : 'price-change negative';
+        
+        // Update metrics (volume stays in original units, market cap in bits)
+        metrics[0].textContent = data.volume;
+        metrics[1].textContent = data.pe;
+        metrics[2].textContent = `${data.marketCapBits} bits`;
+    }
+    
+                    }
+                }
+                
+                // Fallback if onload doesn't work
+                setTimeout(() => {
+                    if (typeof TradingView !== 'undefined' && document.getElementById('tradingview_chart').innerHTML.includes('Loading')) {
+                        initChart();
+                    }
+                }, 2000);
+            </script>
+        </body>
+        </html>
+    `);
+    chartWindow.document.close();
+}
+
+initializeChart() {
+    // Wait for TradingView script to load
+    if (typeof TradingView === 'undefined') {
+        setTimeout(() => this.initializeChart(), 100);
+        return;
+    }
+    
+    // Initialize TradingView chart
+    this.chart = new TradingView.widget({
+        "width": "100%",
+        "height": "100%",
+        "symbol": "BITSTAMP:BTCUSD",
+        "interval": "D",
+        "timezone": "Etc/UTC",
+        "theme": "dark",
+        "style": "1",
+        "locale": "en",
+        "toolbar_bg": "#1a1a2e",
+        "enable_publishing": false,
+        "hide_top_toolbar": false,
+        "hide_legend": false,
+        "save_image": false,
+        "container_id": "tradingview_chart",
+        "studies": [
+            "Volume@tv-basicstudies"
+        ],
+        "overrides": {
+            "paneProperties.background": "#1a1a2e",
+            "paneProperties.vertGridProperties.color": "#363c4e",
+            "paneProperties.horzGridProperties.color": "#363c4e",
+            "symbolWatermarkProperties.transparency": 90,
+            "scalesProperties.textColor": "#AAA",
+            "mainSeriesProperties.candleStyle.wickUpColor": "#00d4aa",
+            "mainSeriesProperties.candleStyle.wickDownColor": "#ff6b6b",
+            "mainSeriesProperties.candleStyle.upColor": "#00d4aa",
+            "mainSeriesProperties.candleStyle.downColor": "#ff6b6b",
+            "mainSeriesProperties.candleStyle.borderUpColor": "#00d4aa",
+            "mainSeriesProperties.candleStyle.borderDownColor": "#ff6b6b"
+            setTimeout(() => this.initializeChart(), 100);
+            return;
+        }
+        
+        // Initialize TradingView chart
+        this.chart = new TradingView.widget({
+            "width": "100%",
+            "height": "100%",
+            "symbol": "BITSTAMP:BTCUSD",
+            "interval": "D",
+            "timezone": "Etc/UTC",
+            "theme": "dark",
+            "style": "1",
+            "locale": "en",
+            "toolbar_bg": "#1a1a2e",
+            "enable_publishing": false,
+            "hide_top_toolbar": false,
+            "hide_legend": false,
+            "save_image": false,
+            "container_id": "tradingview_chart",
+            "studies": [
+                "Volume@tv-basicstudies"
+            ],
+            "overrides": {
+                "paneProperties.background": "#1a1a2e",
+                "paneProperties.vertGridProperties.color": "#363c4e",
+                "paneProperties.horzGridProperties.color": "#363c4e",
+                "symbolWatermarkProperties.transparency": 90,
+                "scalesProperties.textColor": "#AAA",
+                "mainSeriesProperties.candleStyle.wickUpColor": "#00d4aa",
+                "mainSeriesProperties.candleStyle.wickDownColor": "#ff6b6b",
+                "mainSeriesProperties.candleStyle.upColor": "#00d4aa",
+                "mainSeriesProperties.candleStyle.downColor": "#ff6b6b",
+                "mainSeriesProperties.candleStyle.borderUpColor": "#00d4aa",
+                "mainSeriesProperties.candleStyle.borderDownColor": "#ff6b6b"
+            }
+        });
+    }
+    
+    setupEventListeners() {
+        // Time interval buttons
+        const timeButtons = document.querySelectorAll('.time-btn');
+        timeButtons.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const interval = e.target.dataset.interval;
+                this.changeTimeInterval(interval);
+            });
+        });
+    }
+    
+    changeTimeInterval(interval) {
+        // Update active button
+        document.querySelectorAll('.time-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        document.querySelector(`[data-interval="${interval}"]`).classList.add('active');
+        
+        this.currentInterval = interval;
+        
+        // Map intervals to TradingView format
+        const intervalMap = {
+            '1D': 'D',
+            '1W': 'W',
+            '1M': 'M',
+            '3M': '3M',
+            '1Y': '12M'
+        };
+        
+        // Recreate chart with new interval
+        document.getElementById('tradingview_chart').innerHTML = '';
+        
+        // Wait for TradingView to be available
+        if (typeof TradingView === 'undefined') {
+            setTimeout(() => this.changeInterval(interval), 100);
+            return;
+        }
+        
+        this.chart = new TradingView.widget({
+            "width": "100%",
+            "height": "100%",
+            "symbol": "BITSTAMP:BTCUSD",
+            "interval": intervalMap[interval] || 'D',
+            "timezone": "Etc/UTC",
+            "theme": "dark",
+            "style": "1",
+            "locale": "en",
+            "toolbar_bg": "#1a1a2e",
+            "enable_publishing": false,
+            "hide_top_toolbar": false,
+            "hide_legend": false,
+            "save_image": false,
+            "container_id": "tradingview_chart",
+            "studies": [
+                "Volume@tv-basicstudies"
+            ],
+            "overrides": {
+                "paneProperties.background": "#1a1a2e",
+                "paneProperties.vertGridProperties.color": "#363c4e",
+                "paneProperties.horzGridProperties.color": "#363c4e",
+                "symbolWatermarkProperties.transparency": 90,
+                "scalesProperties.textColor": "#AAA",
+                "mainSeriesProperties.candleStyle.wickUpColor": "#00d4aa",
+                "mainSeriesProperties.candleStyle.wickDownColor": "#ff6b6b",
+                "mainSeriesProperties.candleStyle.upColor": "#00d4aa",
+                "mainSeriesProperties.candleStyle.downColor": "#ff6b6b",
+                "mainSeriesProperties.candleStyle.borderUpColor": "#00d4aa",
+                "mainSeriesProperties.candleStyle.borderDownColor": "#ff6b6b"
+            }
+        });
+    }
+    
+    async fetchPriceData() {
+        try {
+            // Using CoinGecko API as a fallback for price data
+            const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_24hr_change=true&include_24hr_vol=true&include_market_cap=true');
+            const data = await response.json();
+            
+            if (data.bitcoin) {
+                this.priceData = data.bitcoin;
+                this.updatePriceDisplay();
+            }
+        } catch (error) {
+            console.error('Error fetching price data:', error);
+            // Fallback to mock data for demo
+            this.priceData = {
+                usd: 45250.50,
+                usd_24h_change: 2.45,
+                usd_24h_vol: 28500000000,
+                usd_market_cap: 890000000000
+            };
+            this.updatePriceDisplay();
+        }
+        
+        // Fetch additional market data
+        this.fetchMarketData();
+    }
+    
+    async fetchMarketData() {
+        try {
+            const response = await fetch('https://api.coingecko.com/api/v3/coins/bitcoin?localization=false&tickers=false&market_data=true&community_data=false&developer_data=false&sparkline=false');
+            const data = await response.json();
+            
+            if (data.market_data) {
+                // Update 24h high/low
+                document.getElementById('high24h').textContent = `$${data.market_data.high_24h.usd.toLocaleString()}`;
+                document.getElementById('low24h').textContent = `$${data.market_data.low_24h.usd.toLocaleString()}`;
+                
+                // Update circulating supply
+                document.getElementById('circulatingSupply').textContent = `${(data.market_data.circulating_supply / 1000000).toFixed(2)}M BTC`;
+            }
+        } catch (error) {
+            console.error('Error fetching market data:', error);
+            // Fallback data
+            document.getElementById('high24h').textContent = '$46,850';
+            document.getElementById('low24h').textContent = '$43,200';
+            document.getElementById('circulatingSupply').textContent = '19.75M BTC';
+        }
+    }
+    
+    updatePriceDisplay() {
+        const currentPrice = document.getElementById('currentPrice');
+        const priceChange = document.getElementById('priceChange');
+        const marketCap = document.getElementById('marketCap');
+        const volume24h = document.getElementById('volume24h');
+        
+        // Update current price
+        currentPrice.textContent = `$${this.priceData.usd.toLocaleString()}`;
+        
+        // Update price change
+        const change = this.priceData.usd_24h_change;
+        const changeValue = change > 0 ? `+$${Math.abs(change * this.priceData.usd / 100).toFixed(2)}` : `-$${Math.abs(change * this.priceData.usd / 100).toFixed(2)}`;
+        const changePercent = change > 0 ? `+${change.toFixed(2)}%` : `${change.toFixed(2)}%`;
+        
+        priceChange.querySelector('.change-value').textContent = changeValue;
+        priceChange.querySelector('.change-percent').textContent = changePercent;
+        
+        // Update price change color
+        priceChange.className = change >= 0 ? 'price-change positive' : 'price-change negative';
+        
+        // Update market cap
+        if (this.priceData.usd_market_cap) {
+            marketCap.textContent = `$${(this.priceData.usd_market_cap / 1000000000).toFixed(2)}B`;
+        }
+        
+        // Update 24h volume
+        if (this.priceData.usd_24h_vol) {
+            volume24h.textContent = `$${(this.priceData.usd_24h_vol / 1000000000).toFixed(2)}B`;
+        }
+    }
+    
+    updateTimestamp() {
+        const now = new Date();
+        const timestamp = now.toLocaleString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        });
+        
+        document.getElementById('lastUpdated').textContent = timestamp;
+    }
+    
+    formatNumber(num) {
+        if (num >= 1000000000) {
+            return (num / 1000000000).toFixed(2) + 'B';
+        } else if (num >= 1000000) {
+            return (num / 1000000).toFixed(2) + 'M';
+        } else if (num >= 1000) {
+            return (num / 1000).toFixed(2) + 'K';
+        }
+        return num.toFixed(2);
+    }
+}
+
+// Utility functions
+function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.innerHTML = `
+        <i class="fas fa-${type === 'error' ? 'exclamation-triangle' : 'info-circle'}"></i>
+        <span>${message}</span>
+    `;
+    
+    // Style the notification
+    Object.assign(notification.style, {
+        position: 'fixed',
+        top: '20px',
+        right: '20px',
+        padding: '15px 20px',
+        borderRadius: '12px',
+        color: 'white',
+        fontWeight: '500',
+        zIndex: '1000',
+        opacity: '0',
+        transform: 'translateX(100%)',
+        transition: 'all 0.3s ease',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '10px',
+        minWidth: '300px',
+        boxShadow: '0 10px 30px rgba(0, 0, 0, 0.3)'
+    });
+    
+    // Set background color based on type
+    const colors = {
+        success: '#00d4aa',
+        error: '#ff6b6b',
+        warning: '#f7931a',
+        info: '#4a9eff'
+    };
+    notification.style.background = colors[type] || colors.info;
+    
+    document.body.appendChild(notification);
+    
+    // Animate in
+    setTimeout(() => {
+        notification.style.opacity = '1';
+        notification.style.transform = 'translateX(0)';
+    }, 100);
+    
+    // Remove after 4 seconds
+    setTimeout(() => {
+        notification.style.opacity = '0';
+        notification.style.transform = 'translateX(100%)';
+        setTimeout(() => {
+            if (document.body.contains(notification)) {
+                document.body.removeChild(notification);
+            }
+        }, 300);
+    }, 4000);
+}
+
+// Initialize the Bitcoin Price Tracker when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+    // Wait a bit for TradingView script to fully load
+    setTimeout(() => {
+        window.tracker = new BitcoinPriceTracker();
+        showNotification('Bitcoin price tracker loaded successfully!', 'success');
+    }, 1000);
+});
+
+// Handle errors
+window.addEventListener('error', (e) => {
+    console.error('Application error:', e.error);
+    showNotification('An error occurred. Please refresh the page.', 'error');
+});
+
+// Handle TradingView widget errors
+window.addEventListener('message', (event) => {
+    if (event.data && event.data.name === 'tv-widget-error') {
+        console.error('TradingView widget error:', event.data);
+        showNotification('Chart loading failed. Please refresh the page.', 'error');
+    }
+});

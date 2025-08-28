@@ -1,0 +1,1211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Macro Economic Indicators - Bitcoiner View</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+    <style>
+        .macro-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .macro-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+            flex-wrap: wrap;
+        }
+        
+        .macro-tab {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px 8px 0 0;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+        }
+        
+        .macro-tab:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+        
+        .macro-tab.active {
+            background: rgba(247, 147, 26, 0.2);
+            border-bottom-color: #f7931a;
+            color: #f7931a;
+        }
+        
+        .macro-content {
+            display: none;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .macro-content.active {
+            display: block;
+        }
+        
+        .chart-container {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            height: 500px;
+            position: relative;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .treemap-container {
+            background: #000;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            height: 600px;
+            position: relative;
+            border: 2px solid #f7931a;
+        }
+        
+        .asset-tooltip {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.95);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            border: 2px solid #f7931a;
+            font-size: 14px;
+            max-width: 300px;
+            z-index: 1000;
+            display: none;
+            box-shadow: 0 4px 12px rgba(247, 147, 26, 0.3);
+        }
+        
+        .asset-tooltip h4 {
+            color: #f7931a;
+            margin: 0 0 10px 0;
+            font-size: 16px;
+        }
+        
+        .asset-tooltip p {
+            margin: 0;
+            line-height: 1.4;
+        }
+        
+        .treemap-title {
+            color: white;
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+        
+        .treemap-subtitle {
+            color: #ccc;
+            font-size: 1rem;
+            text-align: right;
+            margin-bottom: 1rem;
+        }
+        
+        .chart-title {
+            color: #f7931a;
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+        
+        .loading-spinner {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 200px;
+            color: #f7931a;
+        }
+        
+        .error-message {
+            color: #dc3545;
+            text-align: center;
+            padding: 2rem;
+            background: rgba(220, 53, 69, 0.1);
+            border-radius: 8px;
+            border: 1px solid rgba(220, 53, 69, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="container">
+                <h1 class="logo" onclick="window.location.href='index.html'" style="cursor: pointer;">Bitcoiner View</h1>
+                <nav class="nav-links">
+                    <a href="index.html">Dashboard</a>
+                    <a href="spending.html">Bitcoin Spending</a>
+                    <a href="macro.html" class="active">Macro</a>
+                    <a href="dca-lump.html">DCA/LUMP</a>
+                    <a href="contact.html">Contact</a>
+                </nav>
+            </div>
+        </header>
+
+        <div class="macro-container">
+            <h2><i class="fas fa-chart-line"></i> Macro Economic Indicators</h2>
+            
+            <div class="macro-tabs">
+                <button class="macro-tab active" data-tab="asset-market-cap">
+                    <i class="fas fa-coins"></i> Asset Market Caps
+                </button>
+                <button class="macro-tab" data-tab="core-pce">
+                    <i class="fas fa-percentage"></i> Core PCE
+                </button>
+                <button class="macro-tab" data-tab="fed-rate">
+                    <i class="fas fa-university"></i> Fed Rate
+                </button>
+                <button class="macro-tab" data-tab="treasury-yield">
+                    <i class="fas fa-chart-area"></i> Treasury Yield
+                </button>
+                <button class="macro-tab" data-tab="federal-deficit">
+                    <i class="fas fa-minus-circle"></i> Federal Deficit
+                </button>
+                <button class="macro-tab" data-tab="fear-greed">
+                    <i class="fas fa-heart-pulse"></i> Fear & Greed
+                </button>
+                <button class="macro-tab" data-tab="bitcoin-rsi">
+                    <i class="fas fa-wave-square"></i> Bitcoin RSI
+                </button>
+            </div>
+
+            <!-- Asset Market Cap Tab -->
+            <div class="macro-content active" id="asset-market-cap">
+                <div class="treemap-container">
+                    <div class="treemap-title">We are Still Early to Bitcoin</div>
+                    <div class="treemap-subtitle">Total global asset value: $900T</div>
+                    <div id="treemap-chart" style="display: flex; justify-content: center; align-items: center;"></div>
+                    <div class="asset-tooltip" id="asset-tooltip">
+                        <h4 id="tooltip-title"></h4>
+                        <p id="tooltip-description"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Core PCE Tab -->
+            <div class="macro-content" id="core-pce">
+                <div class="chart-container">
+                    <div class="chart-title">Historical Core PCE (Personal Consumption Expenditures)</div>
+                    <canvas id="pceChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Fed Rate Tab -->
+            <div class="macro-content" id="fed-rate">
+                <div class="chart-container">
+                    <div class="chart-title">Historical Federal Funds Rate</div>
+                    <canvas id="fedRateChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Treasury Yield Tab -->
+            <div class="macro-content" id="treasury-yield">
+                <div class="chart-container">
+                    <div class="chart-title">Historical US 10-Year Treasury Yield</div>
+                    <canvas id="treasuryYieldChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Federal Deficit Tab -->
+            <div class="macro-content" id="federal-deficit">
+                <div class="chart-container">
+                    <div class="chart-title">Historical US Federal Deficit</div>
+                    <canvas id="deficitChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Fear & Greed Index Tab -->
+            <div class="macro-content" id="fear-greed">
+                <div class="fear-greed-container">
+                    <div class="fear-greed-grid">
+                        <div class="fear-greed-gauge">
+                            <div class="gauge-title">Current Bitcoin Fear & Greed Index</div>
+                            <div class="gauge-container">
+                                <div class="gauge-background"></div>
+                                <div class="gauge-needle" id="gauge-needle"></div>
+                                <div class="gauge-center"></div>
+                                <div class="gauge-value" id="gauge-value">--</div>
+                                <div class="gauge-label" id="gauge-label">Loading...</div>
+                            </div>
+                        </div>
+                        <div class="fear-greed-chart">
+                            <div class="chart-title">30-Day Historical Fear & Greed Index</div>
+                            <canvas id="fearGreedChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bitcoin RSI Tab -->
+            <div class="macro-content" id="bitcoin-rsi">
+                <div class="rsi-container">
+                    <div class="rsi-grid">
+                        <div class="rsi-chart-wrapper">
+                            <div class="chart-title">Bitcoin Daily RSI (14-period)</div>
+                            <div class="chart-container">
+                                <canvas id="dailyRsiChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="rsi-chart-wrapper">
+                            <div class="chart-title">Bitcoin Weekly RSI (14-period)</div>
+                            <div class="chart-container">
+                                <canvas id="weeklyRsiChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="rsi-chart-wrapper">
+                            <div class="chart-title">Bitcoin Monthly RSI (14-period)</div>
+                            <div class="chart-container">
+                                <canvas id="monthlyRsiChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Asset market cap data (in trillions) with descriptions - Orange theme
+        let assetData = [
+            { 
+                name: "Real Estate", 
+                value: 330, 
+                color: "#ff6b35",
+                description: "Global real estate includes residential, commercial, and industrial properties. This massive asset class represents the largest store of wealth globally, encompassing everything from homes and apartments to office buildings, shopping centers, and warehouses."
+            },
+            { 
+                name: "Bonds", 
+                value: 300, 
+                color: "#ff8c42",
+                description: "Government and corporate debt securities. Bonds represent loans made by investors to borrowers (governments or corporations) and are considered safer investments than stocks, providing regular interest payments and return of principal at maturity."
+            },
+            { 
+                name: "Money", 
+                value: 120, 
+                color: "#ffa552",
+                description: "Global money supply including cash, bank deposits, and money market instruments. This represents the most liquid form of wealth, readily available for transactions and short-term investments across all currencies worldwide."
+            },
+            { 
+                name: "Equities", 
+                value: 115, 
+                color: "#ffbe63",
+                description: "Global stock markets representing ownership shares in publicly traded companies. Equities offer potential for capital appreciation and dividends, representing claims on corporate earnings and assets across all major stock exchanges."
+            },
+            { 
+                name: "Gold", 
+                value: 16, 
+                color: "#ffd700",
+                description: "Physical gold held as investment, jewelry, and central bank reserves. Gold has served as a store of value for thousands of years, offering protection against inflation and currency debasement, though it generates no income."
+            },
+            { 
+                name: "Art", 
+                value: 18, 
+                color: "#ffcc80",
+                description: "Fine art, collectibles, and luxury goods including paintings, sculptures, rare wines, and other collectible items. This alternative asset class has historically appreciated but lacks liquidity and requires specialized knowledge."
+            },
+            { 
+                name: "Cars & Collectibles", 
+                value: 6, 
+                color: "#ffe0b3",
+                description: "Classic cars, vintage items, sports memorabilia, and other collectible assets. These tangible assets can appreciate significantly but are highly illiquid and require storage, insurance, and maintenance costs."
+            },
+            { 
+                name: "Bitcoin", 
+                value: 2, 
+                color: "#f7931a",
+                description: "The world's first and largest cryptocurrency by market capitalization. Bitcoin represents a new form of digital money with a fixed supply of 21 million coins, offering censorship resistance, portability, and potential protection against monetary debasement."
+            }
+        ];
+
+        // Tab switching functionality
+        document.querySelectorAll('.macro-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                const targetTab = tab.dataset.tab;
+                
+                // Update active tab
+                document.querySelectorAll('.macro-tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                // Update active content
+                document.querySelectorAll('.macro-content').forEach(content => {
+                    content.classList.remove('active');
+                });
+                document.getElementById(targetTab).classList.add('active');
+                
+                // Load chart data for the selected tab
+                loadTabData(targetTab);
+            });
+        });
+
+        function loadTabData(tabName) {
+            switch(tabName) {
+                case 'asset-market-cap':
+                    createTreemapChart();
+                    break;
+                case 'core-pce':
+                    createPCEChart();
+                    break;
+                case 'fed-rate':
+                    createFedRateChart();
+                    break;
+                case 'treasury-yield':
+                    createTreasuryYieldChart();
+                    break;
+                case 'federal-deficit':
+                    createDeficitChart();
+                    break;
+                case 'fear-greed':
+                    loadFearGreedData();
+                    break;
+                case 'bitcoin-rsi':
+                    loadBitcoinRSIData();
+                    break;
+            }
+        }
+
+        async function fetchRealTimeMarketCaps() {
+            try {
+                // Fetch Bitcoin market cap specifically from CoinGecko API
+                const response = await fetch('https://api.coingecko.com/api/v3/coins/bitcoin');
+                const data = await response.json();
+                
+                if (data && data.market_data && data.market_data.market_cap) {
+                    const btcMarketCapUSD = data.market_data.market_cap.usd;
+                    const btcMarketCapTrillions = btcMarketCapUSD / 1000000000000; // Convert to trillions
+                    
+                    // Update Bitcoin value in assetData
+                    const bitcoinIndex = assetData.findIndex(asset => asset.name === 'Bitcoin');
+                    if (bitcoinIndex !== -1) {
+                        assetData[bitcoinIndex].value = parseFloat(btcMarketCapTrillions.toFixed(2));
+                        assetData[bitcoinIndex].description = `The world's first and largest cryptocurrency by market capitalization ($${(btcMarketCapUSD / 1000000000).toFixed(0)}B). Bitcoin represents a new form of digital money with a fixed supply of 21 million coins, offering censorship resistance, portability, and potential protection against monetary debasement.`;
+                    }
+                    
+                    console.log(`Updated Bitcoin market cap: $${btcMarketCapTrillions.toFixed(2)}T`);
+                }
+            } catch (error) {
+                console.error('Failed to fetch real-time market cap data:', error);
+                // Keep default values if API fails
+            }
+        }
+
+        async function createTreemapChart() {
+            // Fetch real-time data first
+            await fetchRealTimeMarketCaps();
+            
+            const container = d3.select("#treemap-chart");
+            container.selectAll("*").remove();
+            
+            const width = 1200;
+            const height = 800;
+            const chartWidth = 500;
+            const chartHeight = 500;
+            const radius = Math.min(chartWidth, chartHeight) / 2 - 40;
+            
+            const svg = container
+                .append("svg")
+                .attr("width", width)
+                .attr("height", height)
+                .style("background", "transparent");
+            
+            const g = svg.append("g")
+                .attr("transform", `translate(${width / 2 - 150}, ${height / 2})`);
+            
+            // Create pie chart
+            const pie = d3.pie()
+                .value(d => d.value)
+                .sort((a, b) => b.value - a.value);
+            
+            const arc = d3.arc()
+                .innerRadius(0)
+                .outerRadius(radius);
+            
+            const labelArc = d3.arc()
+                .innerRadius(radius * 0.7)
+                .outerRadius(radius * 0.7);
+            
+            const arcs = g.selectAll(".arc")
+                .data(pie(assetData))
+                .enter().append("g")
+                .attr("class", "arc");
+            
+            // Add pie slices
+            arcs.append("path")
+                .attr("d", arc)
+                .attr("fill", d => d.data.color)
+                .attr("stroke", "#2c2c2c")
+                .attr("stroke-width", 2)
+                .style("cursor", "pointer")
+                .on("mouseover", function(event, d) {
+                    const tooltip = document.getElementById('asset-tooltip');
+                    const titleElement = document.getElementById('tooltip-title');
+                    const descElement = document.getElementById('tooltip-description');
+                    
+                    const percentage = ((d.data.value / assetData.reduce((sum, asset) => sum + asset.value, 0)) * 100).toFixed(1);
+                    titleElement.textContent = `${d.data.name}: $${d.data.value}T (${percentage}%)`;
+                    descElement.textContent = d.data.description;
+                    
+                    tooltip.style.display = 'block';
+                    
+                    // Position tooltip above the cursor
+                    const rect = container.node().getBoundingClientRect();
+                    const tooltipRect = tooltip.getBoundingClientRect();
+                    
+                    let left = event.clientX - rect.left + 10;
+                    let top = event.clientY - rect.top - tooltipRect.height - 10;
+                    
+                    // Ensure tooltip stays within container bounds
+                    if (left + tooltipRect.width > width) {
+                        left = event.clientX - rect.left - tooltipRect.width - 10;
+                    }
+                    if (top < 0) {
+                        top = event.clientY - rect.top + 10;
+                    }
+                    
+                    tooltip.style.left = left + 'px';
+                    tooltip.style.top = top + 'px';
+                    tooltip.style.position = 'absolute';
+                    
+                    // Highlight the slice
+                    d3.select(this)
+                        .transition()
+                        .duration(200)
+                        .attr("transform", "scale(1.05)");
+                })
+                .on("mouseout", function() {
+                    document.getElementById('asset-tooltip').style.display = 'none';
+                    
+                    // Remove highlight
+                    d3.select(this)
+                        .transition()
+                        .duration(200)
+                        .attr("transform", "scale(1)");
+                });
+            
+            // Add labels
+            arcs.append("text")
+                .attr("transform", d => {
+                    const centroid = labelArc.centroid(d);
+                    return `translate(${centroid})`;
+                })
+                .attr("text-anchor", "middle")
+                .attr("dominant-baseline", "middle")
+                .style("font-size", "12px")
+                .style("font-weight", "bold")
+                .style("fill", "white")
+                .style("text-shadow", "2px 2px 4px rgba(0,0,0,0.8)")
+                .each(function(d) {
+                    const percentage = ((d.data.value / assetData.reduce((sum, asset) => sum + asset.value, 0)) * 100);
+                    
+                    // Only show label if slice is large enough (> 1%)
+                    if (percentage > 1) {
+                        const text = d3.select(this);
+                        
+                        // Add asset name
+                        text.append("tspan")
+                            .attr("x", 0)
+                            .attr("dy", "-0.3em")
+                            .text(d.data.name);
+                        
+                        // Add value
+                        text.append("tspan")
+                            .attr("x", 0)
+                            .attr("dy", "1.2em")
+                            .style("font-size", "10px")
+                            .text(`$${d.data.value}T`);
+                    }
+                });
+            
+            // Add legend for smaller items
+            const legend = svg.append("g")
+                .attr("class", "legend")
+                .attr("transform", `translate(${width / 2 + 200}, 100)`);
+            
+            const legendItems = legend.selectAll(".legend-item")
+                .data(assetData.filter(d => {
+                    const total = assetData.reduce((sum, asset) => sum + asset.value, 0);
+                    return (d.value / total) * 100 <= 1; // Show items with <= 1% in legend
+                }))
+                .enter().append("g")
+                .attr("class", "legend-item")
+                .attr("transform", (d, i) => `translate(0, ${i * 25})`);
+            
+            legendItems.append("rect")
+                .attr("width", 15)
+                .attr("height", 15)
+                .attr("fill", d => d.color)
+                .attr("stroke", "#2c2c2c")
+                .attr("stroke-width", 1);
+            
+            legendItems.append("text")
+                .attr("x", 20)
+                .attr("y", 12)
+                .style("font-size", "12px")
+                .style("fill", "white")
+                .text(d => `${d.name}: $${d.value}T`);
+            
+            // Update total value after chart creation
+            updateTotalValue();
+        }
+
+        // Update total value calculation
+        function updateTotalValue() {
+            const total = assetData.reduce((sum, asset) => sum + asset.value, 0);
+            const titleElement = document.querySelector('.treemap-subtitle');
+            if (titleElement) {
+                titleElement.textContent = `Total global asset value: $${total.toFixed(0)}T`;
+            }
+        }
+
+        async function createPCEChart() {
+            const canvas = document.getElementById('pceChart');
+            if (!canvas) return;
+            
+            // Historical Core PCE data (1990-2024)
+            const years = [];
+            const pceValues = [];
+            
+            // Generate years from 1990 to current year
+            const currentYear = new Date().getFullYear();
+            for (let year = 1990; year <= currentYear; year++) {
+                years.push(year.toString());
+            }
+            
+            // Historical Core PCE data (approximate values)
+            const historicalPCE = [
+                4.2, 3.1, 2.9, 2.7, 2.6, 2.0, 2.2, 2.2, 1.9, 1.4, // 1990-1999
+                1.2, 1.9, 2.2, 1.1, 2.4, 2.1, 2.4, 2.3, 0.1, 1.8, // 2000-2009
+                1.3, 1.7, 1.8, 1.6, 1.6, 1.7, 1.9, 1.8, 1.6, 1.6, // 2010-2019
+                1.6, 3.5, 5.2, 3.8, 2.8, 2.4 // 2020-2025
+            ];
+            
+            // Pad or trim data to match years
+            const dataLength = Math.min(years.length, historicalPCE.length);
+            
+            const pceData = {
+                labels: years.slice(0, dataLength),
+                datasets: [{
+                    label: 'Core PCE (%)',
+                    data: historicalPCE.slice(0, dataLength),
+                    borderColor: '#f7931a',
+                    backgroundColor: 'rgba(247, 147, 26, 0.1)',
+                    tension: 0.4,
+                    pointRadius: 2,
+                    pointHoverRadius: 5
+                }]
+            };
+            
+            new Chart(canvas, {
+                type: 'line',
+                data: pceData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Percentage (%)'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Year'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        }
+                    }
+                }
+            });
+        }
+
+        async function createFedRateChart() {
+            const canvas = document.getElementById('fedRateChart');
+            if (!canvas) return;
+            
+            // Historical Federal Funds Rate data (1990-2024)
+            const years = [];
+            const currentYear = new Date().getFullYear();
+            for (let year = 1990; year <= currentYear; year++) {
+                years.push(year.toString());
+            }
+            
+            // Historical Fed Rate data (approximate values)
+            const historicalFedRate = [
+                8.1, 5.7, 3.5, 3.0, 4.2, 5.8, 5.5, 5.0, 4.6, 5.4, // 1990-1999
+                6.0, 3.9, 1.7, 1.0, 2.3, 4.3, 5.0, 2.0, 0.2, 0.1, // 2000-2009
+                0.1, 0.1, 0.1, 0.1, 0.3, 0.5, 0.7, 1.8, 2.4, 1.8, // 2010-2019
+                0.4, 0.1, 1.7, 5.0, 5.3, 4.8 // 2020-2025
+            ];
+            
+            const dataLength = Math.min(years.length, historicalFedRate.length);
+            
+            const fedRateData = {
+                labels: years.slice(0, dataLength),
+                datasets: [{
+                    label: 'Federal Funds Rate (%)',
+                    data: historicalFedRate.slice(0, dataLength),
+                    borderColor: '#f7931a',
+                    backgroundColor: 'rgba(247, 147, 26, 0.1)',
+                    tension: 0.4,
+                    pointRadius: 2,
+                    pointHoverRadius: 5
+                }]
+            };
+            
+            new Chart(canvas, {
+                type: 'line',
+                data: fedRateData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Percentage (%)'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Year'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        }
+                    }
+                }
+            });
+        }
+
+        async function createTreasuryYieldChart() {
+            const canvas = document.getElementById('treasuryYieldChart');
+            if (!canvas) return;
+            
+            // Historical 10-Year Treasury Yield data (1990-2024)
+            const years = [];
+            const currentYear = new Date().getFullYear();
+            for (let year = 1990; year <= currentYear; year++) {
+                years.push(year.toString());
+            }
+            
+            // Historical Treasury Yield data (approximate values)
+            const historicalTreasuryYield = [
+                8.6, 7.9, 7.0, 5.9, 7.1, 6.6, 6.4, 5.3, 4.7, 6.0, // 1990-1999
+                6.0, 5.0, 4.6, 4.0, 4.3, 4.5, 4.8, 3.7, 2.2, 3.3, // 2000-2009
+                3.2, 1.9, 2.4, 2.5, 2.1, 1.8, 2.4, 2.9, 1.9, 2.1, // 2010-2019
+                0.9, 1.5, 3.9, 4.6, 4.2, 4.3 // 2020-2025
+            ];
+            
+            const dataLength = Math.min(years.length, historicalTreasuryYield.length);
+            
+            const treasuryData = {
+                labels: years.slice(0, dataLength),
+                datasets: [{
+                    label: '10-Year Treasury Yield (%)',
+                    data: historicalTreasuryYield.slice(0, dataLength),
+                    borderColor: '#f7931a',
+                    backgroundColor: 'rgba(247, 147, 26, 0.1)',
+                    tension: 0.4,
+                    pointRadius: 2,
+                    pointHoverRadius: 5
+                }]
+            };
+            
+            new Chart(canvas, {
+                type: 'line',
+                data: treasuryData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Percentage (%)'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Year'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        }
+                    }
+                }
+            });
+        }
+
+        async function createDeficitChart() {
+            const canvas = document.getElementById('deficitChart');
+            if (!canvas) return;
+            
+            // Historical Federal Deficit data (1990-2024, in trillions)
+            const years = [];
+            const currentYear = new Date().getFullYear();
+            for (let year = 1990; year <= currentYear; year++) {
+                years.push(year.toString());
+            }
+            
+            // Historical Federal Deficit data (approximate values in trillions)
+            const historicalDeficit = [
+                -0.22, -0.27, -0.29, -0.26, -0.20, -0.16, -0.11, 0.07, 0.24, 0.13, // 1990-1999
+                0.24, -0.16, -0.38, -0.41, -0.32, -0.25, -0.16, -0.46, -1.41, -1.29, // 2000-2009
+                -1.29, -1.09, -0.68, -0.48, -0.44, -0.59, -0.67, -0.78, -0.78, -0.98, // 2010-2019
+                -3.13, -2.78, -1.38, -1.70, -1.83, -1.95 // 2020-2025
+            ];
+            
+            const dataLength = Math.min(years.length, historicalDeficit.length);
+            
+            const deficitData = {
+                labels: years.slice(0, dataLength),
+                datasets: [{
+                    label: 'Federal Deficit (Trillions $)',
+                    data: historicalDeficit.slice(0, dataLength),
+                    borderColor: '#f7931a',
+                    backgroundColor: 'rgba(247, 147, 26, 0.1)',
+                    tension: 0.4,
+                    pointRadius: 2,
+                    pointHoverRadius: 5
+                }]
+            };
+            
+            new Chart(canvas, {
+                type: 'line',
+                data: deficitData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Trillions USD'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Year'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        }
+                    }
+                }
+            });
+        }
+
+        // Fear & Greed Index functionality
+        async function loadFearGreedIndex() {
+            const display = document.getElementById('fearGreedDisplay');
+            const canvas = document.getElementById('fearGreedChart');
+            
+            try {
+                // Fetch current Fear & Greed Index
+                const response = await fetch('https://api.alternative.me/fng/?limit=30');
+                const data = await response.json();
+                
+                if (data.data && data.data.length > 0) {
+                    createFearGreedDisplay(data.data);
+                    createFearGreedChart(data.data);
+                    display.style.display = 'block';
+                    canvas.style.display = 'block';
+                } else {
+                    throw new Error('No data received');
+                }
+            } catch (error) {
+                console.error('Error fetching Fear & Greed data:', error);
+                display.innerHTML = `
+                    <div class="error-message">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Unable to load Fear & Greed Index data. Please try again later.
+                    </div>
+                `;
+            }
+        }
+
+        function createFearGreedDisplay(data) {
+            const currentData = data[0];
+            const value = parseInt(currentData.value);
+            const classification = currentData.value_classification;
+            
+            // Create gauge-style display
+            const display = document.getElementById('fearGreedDisplay');
+            display.innerHTML = `
+                <div style="text-align: center; margin-bottom: 2rem;">
+                    <div style="position: relative; width: 300px; height: 150px; margin: 0 auto;">
+                        <div style="width: 300px; height: 150px; background: conic-gradient(
+                            from 180deg,
+                            #dc3545 0deg,
+                            #fd7e14 36deg,
+                            #ffc107 72deg,
+                            #28a745 108deg,
+                            #198754 144deg
+                        ); border-radius: 150px 150px 0 0; position: relative;">
+                            <div style="position: absolute; top: 10px; left: 10px; right: 10px; bottom: 0; 
+                                background: #000; border-radius: 140px 140px 0 0;"></div>
+                            <div style="position: absolute; bottom: 0; left: 50%; transform: translateX(-50%) rotate(${(value / 100) * 180 - 90}deg); 
+                                width: 4px; height: 120px; background: #f7931a; transform-origin: bottom; 
+                                border-radius: 2px; box-shadow: 0 0 10px #f7931a;"></div>
+                        </div>
+                        <div style="position: absolute; bottom: -10px; left: 50%; transform: translateX(-50%); 
+                            background: #f7931a; color: #000; padding: 8px 16px; border-radius: 20px; 
+                            font-weight: bold; font-size: 1.1rem;">
+                            ${value}
+                        </div>
+                    </div>
+                    <div style="margin-top: 1rem;">
+                        <h3 style="color: #f7931a; margin: 0.5rem 0; font-size: 1.5rem;">${classification}</h3>
+                        <p style="color: #ccc; margin: 0; font-size: 0.9rem;">
+                            Last updated: ${new Date(currentData.timestamp * 1000).toLocaleDateString()}
+                        </p>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-top: 1rem; font-size: 0.8rem; color: #999;">
+                        <span>Extreme Fear</span>
+                        <span>Fear</span>
+                        <span>Neutral</span>
+                        <span>Greed</span>
+                        <span>Extreme Greed</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        function createFearGreedChart(data) {
+            const canvas = document.getElementById('fearGreedChart');
+            const ctx = canvas.getContext('2d');
+            
+            // Prepare data for chart (reverse to show chronological order)
+            const chartData = data.reverse();
+            const labels = chartData.map(item => new Date(item.timestamp * 1000).toLocaleDateString());
+            const values = chartData.map(item => parseInt(item.value));
+            
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Fear & Greed Index',
+                        data: values,
+                        borderColor: '#f7931a',
+                        backgroundColor: 'rgba(247, 147, 26, 0.1)',
+                        borderWidth: 3,
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
+                        tension: 0.3,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            min: 0,
+                            max: 100,
+                            title: {
+                                display: true,
+                                text: 'Fear & Greed Index (0-100)',
+                                color: '#f7931a'
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: '#ccc',
+                                stepSize: 20,
+                                callback: function(value) {
+                                    if (value <= 20) return value + ' (Extreme Fear)';
+                                    if (value <= 40) return value + ' (Fear)';
+                                    if (value <= 60) return value + ' (Neutral)';
+                                    if (value <= 80) return value + ' (Greed)';
+                                    return value + ' (Extreme Greed)';
+                                }
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Date',
+                                color: '#f7931a'
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: '#ccc'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            labels: {
+                                color: '#f7931a',
+                                font: {
+                                    weight: 'bold'
+                                }
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            titleColor: '#f7931a',
+                            bodyColor: '#fff',
+                            borderColor: '#f7931a',
+                            borderWidth: 2,
+                            callbacks: {
+                                label: function(context) {
+                                    const value = context.parsed.y;
+                                    let sentiment = '';
+                                    if (value <= 20) sentiment = 'Extreme Fear';
+                                    else if (value <= 40) sentiment = 'Fear';
+                                    else if (value <= 60) sentiment = 'Neutral';
+                                    else if (value <= 80) sentiment = 'Greed';
+                                    else sentiment = 'Extreme Greed';
+                                    return `Fear & Greed: ${value} (${sentiment})`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Tab switching functionality
+        document.querySelectorAll('.macro-tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                const targetTab = this.dataset.tab;
+                
+                // Remove active class from all tabs and contents
+                document.querySelectorAll('.macro-tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.macro-content').forEach(c => c.classList.remove('active'));
+                
+                // Add active class to clicked tab and corresponding content
+                this.classList.add('active');
+                document.getElementById(targetTab).classList.add('active');
+                
+                // Initialize charts when tab becomes active
+                if (targetTab === 'core-pce') {
+                    createPCEChart();
+                } else if (targetTab === 'fed-rate') {
+                    createFedRateChart();
+                } else if (targetTab === 'treasury-yield') {
+                    createTreasuryYieldChart();
+                } else if (targetTab === 'federal-deficit') {
+                    createDeficitChart();
+                } else if (targetTab === 'fear-greed') {
+                    loadFearGreedIndex();
+                } else if (targetTab === 'bitcoin-rsi') {
+                    loadBitcoinRSIData();
+                }
+            });
+        });
+
+        // Bitcoin RSI Data Generation and Chart Functions
+        function generateRSIData(periods, timeframe) {
+            const labels = [];
+            const rsiValues = [];
+            const currentDate = new Date();
+            
+            for (let i = periods - 1; i >= 0; i--) {
+                let date = new Date(currentDate);
+                
+                if (timeframe === 'daily') {
+                    date.setDate(date.getDate() - i);
+                    labels.push(date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+                } else if (timeframe === 'weekly') {
+                    date.setDate(date.getDate() - (i * 7));
+                    labels.push(date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+                } else if (timeframe === 'monthly') {
+                    date.setMonth(date.getMonth() - i);
+                    labels.push(date.toLocaleDateString('en-US', { year: 'numeric', month: 'short' }));
+                }
+                
+                // Generate realistic RSI values (0-100)
+                // RSI tends to oscillate between oversold (30) and overbought (70) levels
+                const baseRSI = 50;
+                const volatility = 25;
+                const trend = Math.sin((i / periods) * Math.PI * 2) * 15;
+                const noise = (Math.random() - 0.5) * 20;
+                
+                let rsi = baseRSI + trend + noise;
+                rsi = Math.max(0, Math.min(100, rsi)); // Clamp between 0-100
+                
+                rsiValues.push(parseFloat(rsi.toFixed(2)));
+            }
+            
+            return { labels, data: rsiValues };
+        }
+
+        function createRSIChart(canvasId, timeframe, periods) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) return;
+            
+            const ctx = canvas.getContext('2d');
+            const rsiData = generateRSIData(periods, timeframe);
+            
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: rsiData.labels,
+                    datasets: [{
+                        label: `${timeframe.charAt(0).toUpperCase() + timeframe.slice(1)} RSI`,
+                        data: rsiData.data,
+                        borderColor: '#f7931a',
+                        backgroundColor: 'rgba(247, 147, 26, 0.1)',
+                        borderWidth: 2,
+                        pointRadius: 3,
+                        pointHoverRadius: 6,
+                        tension: 0.3,
+                        fill: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            titleColor: '#f7931a',
+                            bodyColor: '#fff',
+                            borderColor: '#f7931a',
+                            borderWidth: 1,
+                            callbacks: {
+                                label: function(context) {
+                                    const value = context.parsed.y;
+                                    let condition = 'Neutral';
+                                    if (value >= 70) condition = 'Overbought';
+                                    else if (value <= 30) condition = 'Oversold';
+                                    return `RSI: ${value.toFixed(2)} (${condition})`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            min: 0,
+                            max: 100,
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)',
+                                drawBorder: false
+                            },
+                            ticks: {
+                                color: '#ccc',
+                                stepSize: 20,
+                                callback: function(value) {
+                                    if (value === 70) return '70 (Overbought)';
+                                    if (value === 30) return '30 (Oversold)';
+                                    return value;
+                                }
+                            },
+                            // Add horizontal lines at 30 and 70
+                            afterDraw: function(chart) {
+                                const ctx = chart.ctx;
+                                const yAxis = chart.scales.y;
+                                const xAxis = chart.scales.x;
+                                
+                                // Overbought line (70)
+                                ctx.save();
+                                ctx.strokeStyle = 'rgba(255, 0, 0, 0.5)';
+                                ctx.lineWidth = 1;
+                                ctx.setLineDash([5, 5]);
+                                ctx.beginPath();
+                                ctx.moveTo(xAxis.left, yAxis.getPixelForValue(70));
+                                ctx.lineTo(xAxis.right, yAxis.getPixelForValue(70));
+                                ctx.stroke();
+                                
+                                // Oversold line (30)
+                                ctx.strokeStyle = 'rgba(0, 255, 0, 0.5)';
+                                ctx.beginPath();
+                                ctx.moveTo(xAxis.left, yAxis.getPixelForValue(30));
+                                ctx.lineTo(xAxis.right, yAxis.getPixelForValue(30));
+                                ctx.stroke();
+                                ctx.restore();
+                            }
+                        },
+                        x: {
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)',
+                                drawBorder: false
+                            },
+                            ticks: {
+                                color: '#ccc',
+                                maxTicksLimit: 8
+                            }
+                        }
+                    },
+                    interaction: {
+                        mode: 'nearest',
+                        axis: 'x',
+                        intersect: false
+                    }
+                }
+            });
+        }
+
+        function loadBitcoinRSIData() {
+            // Create all three RSI charts
+            createRSIChart('dailyRsiChart', 'daily', 30);     // 30 days
+            createRSIChart('weeklyRsiChart', 'weekly', 26);   // 26 weeks (~6 months)
+            createRSIChart('monthlyRsiChart', 'monthly', 24); // 24 months (2 years)
+        }
+
+        // Initialize with first tab
+        document.addEventListener('DOMContentLoaded', () => {
+            createTreemapChart();
+            
+            // Refresh market cap data every 10 minutes
+            setInterval(async () => {
+                if (document.querySelector('#asset-market-cap').classList.contains('active')) {
+                    await createTreemapChart();
+                }
+            }, 600000); // 10 minutes
+        });
+    </script>
+</body>
+</html>

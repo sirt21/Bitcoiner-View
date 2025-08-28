@@ -1,4 +1,3 @@
-# Bitcoiner-View
 # Bitcoiner View 🧡
 
 A comprehensive Bitcoin-focused financial dashboard that provides real-time insights, economic analysis, and Bitcoin-denominated price comparisons across various asset classes.
@@ -178,4 +177,3 @@ For Bitcoin consulting, education, and security guidance:
 **Disclaimer**: This tool is for educational and informational purposes only. Not financial advice. Always do your own research before making investment decisions.
 
 Built with 🧡 for the Bitcoin community.
-

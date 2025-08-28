@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bitcoiner View - Bitcoin & Stock Prices</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="modal-styles.css">
+    <link rel="stylesheet" href="explanation-styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://s3.tradingview.com/tv.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script src="script-new.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1 class="logo" onclick="window.location.href='index.html'" style="cursor: pointer;">Bitcoiner View</h1>
+            <nav class="nav-links">
+                <a href="index.html" class="active">Dashboard</a>
+                <a href="spending.html">Bitcoin Spending</a>
+                <a href="macro.html">Macro</a>
+                <a href="dca-lump.html">DCA/LUMP</a>
+                <a href="contact.html">Contact</a>
+            </nav>
+            <div class="tab-buttons">
+                <button class="tab-btn active" data-tab="bitcoin-usd">
+                    <i class="fab fa-bitcoin"></i>
+                    Bitcoin/USD
+                </button>
+                <button class="tab-btn" data-tab="stocks-btc">
+                    <i class="fas fa-chart-bar"></i>
+                    Stocks/BTC
+                </button>
+                <button class="tab-btn" data-tab="realestate-btc">
+                    <i class="fas fa-building"></i>
+                    Real Estate/BTC
+                </button>
+                <button class="tab-btn" data-tab="commodities-btc">
+                    <i class="fas fa-seedling"></i>
+                    Commodities/BTC
+                </button>
+                <button class="tab-btn" data-tab="my-cpi">
+                    <i class="fas fa-receipt"></i>
+                    My CPI
+                </button>
+                <button class="tab-btn" data-tab="college-btc">
+                    <i class="fas fa-graduation-cap"></i>
+                    College/BTC
+                </button>
+                <button class="tab-btn" data-tab="money-supply">
+                    <i class="fas fa-dollar-sign"></i>
+                    Money Supply
+                </button>
+                <button class="tab-btn" data-tab="bitcoin24">
+                    <i class="fas fa-calculator"></i>
+                    Bitcoin24
+                </button>
+            </div>
+
+            <!-- Real Estate/BTC Tab Content -->
+            <div class="tab-content" id="realestate-btc">
+                <div class="real-estate-header">
+                    <h2>Global Real Estate Priced in Bitcoin</h2>
+                    <blockquote class="saylor-quote">
+                        "Bitcoin is Manhattan in Cyberspace"
+                        <cite>- Michael Saylor</cite>
+                    </blockquote>
+                </div>
+                
+                <div class="real-estate-sections">
+                    <!-- Los Angeles Section -->
+                    <div class="city-section">
+                        <h3><i class="fas fa-city"></i> Los Angeles Homes Priced in Bitcoin</h3>
+                        <div class="chart-container">
+                            <canvas id="laChart"></canvas>
+                        </div>
+                        <div class="city-stats">
+                            <div class="stat-item">
+                                <span class="stat-label">Current Avg Price:</span>
+                                <span class="stat-value" id="laCurrentPrice">Loading...</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Price in BTC:</span>
+                                <span class="stat-value" id="laBtcPrice">Loading...</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- New York City Section -->
+                    <div class="city-section">
+                        <h3><i class="fas fa-building"></i> New York City Homes Priced in Bitcoin</h3>
+                        <div class="chart-container">
+                            <canvas id="nycChart"></canvas>
+                        </div>
+                        <div class="city-stats">
+                            <div class="stat-item">
+                                <span class="stat-label">Current Avg Price:</span>
+                                <span class="stat-value" id="nycCurrentPrice">Loading...</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Price in BTC:</span>
+                                <span class="stat-value" id="nycBtcPrice">Loading...</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Paris Section -->
+                    <div class="city-section">
+                        <h3><i class="fas fa-landmark"></i> Paris Homes Priced in Bitcoin</h3>
+                        <div class="chart-container">
+                            <canvas id="parisChart"></canvas>
+                        </div>
+                        <div class="city-stats">
+                            <div class="stat-item">
+                                <span class="stat-label">Current Avg Price:</span>
+                                <span class="stat-value" id="parisCurrentPrice">Loading...</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Price in BTC:</span>
+                                <span class="stat-value" id="parisBtcPrice">Loading...</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Beirut Section -->
+                    <div class="city-section">
+                        <h3><i class="fas fa-mosque"></i> Beirut Homes Priced in Bitcoin</h3>
+                        <div class="chart-container">
+                            <canvas id="beirutChart"></canvas>
+                        </div>
+                        <div class="city-stats">
+                            <div class="stat-item">
+                                <span class="stat-label">Current Avg Price:</span>
+                                <span class="stat-value" id="beirutCurrentPrice">Loading...</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Price in BTC:</span>
+                                <span class="stat-value" id="beirutBtcPrice">Loading...</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tokyo Section -->
+                    <div class="city-section">
+                        <h3><i class="fas fa-torii-gate"></i> Tokyo Homes Priced in Bitcoin</h3>
+                        <div class="chart-container">
+                            <canvas id="tokyoChart"></canvas>
+                        </div>
+                        <div class="city-stats">
+                            <div class="stat-item">
+                                <span class="stat-label">Current Avg Price:</span>
+                                <span class="stat-value" id="tokyoCurrentPrice">Loading...</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Price in BTC:</span>
+                                <span class="stat-value" id="tokyoBtcPrice">Loading...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </header>
+
+        <main class="main-content">
+            <!-- Bitcoin/USD Tab Content -->
+            <div class="tab-content active" id="bitcoin-usd">
+                <div class="chart-container">
+                <div class="chart-header">
+                    <h2>Bitcoin Price Chart</h2>
+                    <div class="chart-controls">
+                        <button class="time-btn active" data-interval="1D">1D</button>
+                        <button class="time-btn" data-interval="1W">1W</button>
+                        <button class="time-btn" data-interval="1M">1M</button>
+                        <button class="time-btn" data-interval="3M">3M</button>
+                        <button class="time-btn" data-interval="1Y">1Y</button>
+                    </div>
+                </div>
+                
+                <!-- TradingView Widget -->
+                <div class="tradingview-widget-container">
+                    <div id="tradingview_chart"></div>
+                    <div class="tradingview-widget-copyright">
+                        <a href="https://www.tradingview.com/" rel="noopener nofollow" target="_blank">
+                            <span class="blue-text">Track all markets on TradingView</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3>24h High</h3>
+                        <p id="high24h">--</p>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-chart-line-down"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3>24h Low</h3>
+                        <p id="low24h">--</p>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-coins"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3>Market Cap</h3>
+                        <p id="marketCap">--</p>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-exchange-alt"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3>24h Volume</h3>
+                        <p id="volume24h">--</p>
+                    </div>
+                </div>
+            </div>
+
+            </div>
+
+            <!-- Stocks/BTC Tab Content -->
+            <div class="tab-content" id="stocks-btc">
+                <div class="stocks-header">
+                    <h2>Top 10 Stocks Priced in Bits</h2>
+                    <p>Stock prices denominated in bits - Click any stock to view its detailed chart</p>
+                </div>
+                
+                <div class="stocks-grid" id="stocksGrid">
+                    <!-- Stock cards will be populated by JavaScript -->
+                    <div class="stock-card loading-card">
+                        <div class="loading-spinner"></div>
+                        <p>Loading stocks...</p>
+                    </div>
+                </div>
+            </div>
+            
+
+            <!-- Commodities/BTC Tab Content -->
+            <div class="tab-content" id="commodities-btc">
+                <div class="stocks-header">
+                    <h2>Commodities Priced in Bits</h2>
+                    <p>Commodity prices denominated in bits - Click any commodity to view its detailed chart</p>
+                </div>
+                
+                <div class="stocks-grid" id="commoditiesGrid">
+                    <!-- Commodity cards will be populated by JavaScript -->
+                    <div class="stock-card loading-card">
+                        <div class="loading-spinner"></div>
+                        <p>Loading commodities...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- My CPI Tab Content -->
+            <div class="tab-content" id="my-cpi">
+                <div class="cpi-header">
+                    <h2>My Personal CPI Calculator</h2>
+                    <p>Create your own Consumer Price Index by selecting categories and weights based on your spending patterns.</p>
+                </div>
+                
+                <div class="cpi-container">
+                    <div class="cpi-categories">
+                        <h3>Select Categories & Weights</h3>
+                        <div class="weight-legend">
+                            <span class="weight-item"><strong>Low:</strong> 1x weight</span>
+                            <span class="weight-item"><strong>Medium:</strong> 5x weight</span>
+                            <span class="weight-item"><strong>High:</strong> 10x weight</span>
+                        </div>
+                        
+                        <div class="categories-grid" id="categoriesGrid">
+                            <!-- Categories will be populated by JavaScript -->
+                        </div>
+                        
+                        <div class="weight-summary">
+                            <div class="weight-total">
+                                Total Weight: <span id="totalWeight">0</span>
+                                <div class="weight-bar">
+                                    <div class="weight-progress" id="weightProgress"></div>
+                                </div>
+                            </div>
+                            <button id="calculateCPI" class="calculate-btn">Calculate My CPI</button>
+                        </div>
+                    </div>
+                    
+                    <div class="cpi-results" id="cpiResults" style="display: none;">
+                        <h3>Your Personal CPI</h3>
+                        <div class="results-content">
+                            <div class="cpi-chart-container">
+                                <canvas id="cpiChart"></canvas>
+                            </div>
+                            <div class="cpi-summary">
+                                <div class="cpi-value">
+                                    <h4>Current CPI: <span id="currentCPI">--</span></h4>
+                                    <p>Base Year (2020): 100.0</p>
+                                </div>
+                                <div class="basket-breakdown" id="basketBreakdown">
+                                    <!-- Basket details will be shown here -->
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="asset-comparison" id="assetComparison" style="display: none;">
+                            <h4>Asset Performance vs Your CPI (Since 2020)</h4>
+                            <div class="asset-grid">
+                                <div class="asset-card bitcoin">
+                                    <div class="asset-header">
+                                        <h5>Bitcoin</h5>
+                                        <div class="asset-icon">₿</div>
+                                    </div>
+                                    <div class="asset-stats">
+                                        <div class="stat-row">
+                                            <span class="stat-label">2020 Price:</span>
+                                            <span class="stat-value">$10,000</span>
+                                        </div>
+                                        <div class="stat-row">
+                                            <span class="stat-label">Current:</span>
+                                            <span class="stat-value" id="currentBtcPrice">$100,000</span>
+                                        </div>
+                                        <div class="stat-row highlight">
+                                            <span class="stat-label">Return:</span>
+                                            <span class="stat-value" id="btcReturn">+900%</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="asset-card sp500">
+                                    <div class="asset-header">
+                                        <h5>S&P 500</h5>
+                                        <div class="asset-icon">📈</div>
+                                    </div>
+                                    <div class="asset-stats">
+                                        <div class="stat-row">
+                                            <span class="stat-label">2020 Price:</span>
+                                            <span class="stat-value">3,200</span>
+                                        </div>
+                                        <div class="stat-row">
+                                            <span class="stat-label">Current:</span>
+                                            <span class="stat-value" id="currentSp500Price">5,500</span>
+                                        </div>
+                                        <div class="stat-row highlight">
+                                            <span class="stat-label">Return:</span>
+                                            <span class="stat-value" id="sp500Return">+72%</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="asset-card gold">
+                                    <div class="asset-header">
+                                        <h5>Gold</h5>
+                                        <div class="asset-icon">🥇</div>
+                                    </div>
+                                    <div class="asset-stats">
+                                        <div class="stat-row">
+                                            <span class="stat-label">2020 Price:</span>
+                                            <span class="stat-value">$1,800</span>
+                                        </div>
+                                        <div class="stat-row">
+                                            <span class="stat-label">Current:</span>
+                                            <span class="stat-value" id="currentGoldPrice">$2,500</span>
+                                        </div>
+                                        <div class="stat-row highlight">
+                                            <span class="stat-label">Return:</span>
+                                            <span class="stat-value" id="goldReturn">+39%</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="asset-card cpi">
+                                    <div class="asset-header">
+                                        <h5>Your CPI</h5>
+                                        <div class="asset-icon">🛒</div>
+                                    </div>
+                                    <div class="asset-stats">
+                                        <div class="stat-row">
+                                            <span class="stat-label">2020 Base:</span>
+                                            <span class="stat-value">100.0</span>
+                                        </div>
+                                        <div class="stat-row">
+                                            <span class="stat-label">Current:</span>
+                                            <span class="stat-value" id="currentCPIValue">125.0</span>
+                                        </div>
+                                        <div class="stat-row highlight negative">
+                                            <span class="stat-label">Inflation:</span>
+                                            <span class="stat-value" id="cpiInflationRate">+25%</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="comparison-summary">
+                                <h5>Inflation Protection Analysis</h5>
+                                <div class="protection-stats">
+                                    <div class="protection-item best">
+                                        <span class="protection-label">Best Hedge:</span>
+                                        <span class="protection-value" id="bestHedge">Bitcoin (+900%)</span>
+                                    </div>
+                                    <div class="protection-item">
+                                        <span class="protection-label">Your Inflation:</span>
+                                        <span class="protection-value" id="yourInflation">+25%</span>
+                                    </div>
+                                </div>
+                                <p class="protection-note">
+                                    Assets that outperformed your personal inflation rate provide protection against purchasing power loss.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- College/BTC Tab Content -->
+            <div class="tab-content" id="college-btc">
+                <div class="college-header">
+                    <h2>University Tuition Priced in Bitcoin</h2>
+                </div>
+                
+                <div class="college-sections">
+                    <!-- Harvard Section -->
+                    <div class="university-section">
+                        <h3><i class="fas fa-university"></i> Harvard University Tuition in Bitcoin</h3>
+                        <div class="chart-container">
+                            <canvas id="harvardChart"></canvas>
+                        </div>
+                        <div class="university-stats">
+                            <div class="stat-item">
+                                <span class="stat-label">2024 Tuition (USD):</span>
+                                <span class="stat-value" id="harvardCurrentPrice">$79,450</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">2024 Tuition (BTC):</span>
+                                <span class="stat-value" id="harvardBtcPrice">Loading...</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Peak BTC Cost (2022):</span>
+                                <span class="stat-value" id="harvardPeakBtc">Loading...</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Top 5 Most Expensive Universities Section -->
+                    <div class="university-section">
+                        <h3><i class="fas fa-chart-line"></i> Top 5 Most Expensive US Universities in Bitcoin</h3>
+                        <div class="expensive-universities-grid">
+                            <div class="university-card" data-university="harvey-mudd">
+                                <div class="university-header">
+                                    <h4>Harvey Mudd College</h4>
+                                    <span class="university-rank">#1 Most Expensive</span>
+                                </div>
+                                <div class="university-price">
+                                    <div class="price-usd">$90,165</div>
+                                    <div class="price-btc" id="harveyMuddBtc">Loading...</div>
+                                </div>
+                                <div class="chart-mini-container">
+                                    <canvas id="harveyMuddChart"></canvas>
+                                </div>
+                            </div>
+
+                            <div class="university-card" data-university="northwestern">
+                                <div class="university-header">
+                                    <h4>Northwestern University</h4>
+                                    <span class="university-rank">#2 Most Expensive</span>
+                                </div>
+                                <div class="university-price">
+                                    <div class="price-usd">$91,290</div>
+                                    <div class="price-btc" id="northwesternBtc">Loading...</div>
+                                </div>
+                                <div class="chart-mini-container">
+                                    <canvas id="northwesternChart"></canvas>
+                                </div>
+                            </div>
+
+                            <div class="university-card" data-university="usc">
+                                <div class="university-header">
+                                    <h4>USC</h4>
+                                    <span class="university-rank">#3 Most Expensive</span>
+                                </div>
+                                <div class="university-price">
+                                    <div class="price-usd">$90,453</div>
+                                    <div class="price-btc" id="uscBtc">Loading...</div>
+                                </div>
+                                <div class="chart-mini-container">
+                                    <canvas id="uscChart"></canvas>
+                                </div>
+                            </div>
+
+                            <div class="university-card" data-university="uchicago">
+                                <div class="university-header">
+                                    <h4>University of Chicago</h4>
+                                    <span class="university-rank">#4 Most Expensive</span>
+                                </div>
+                                <div class="university-price">
+                                    <div class="price-usd">$90,360</div>
+                                    <div class="price-btc" id="uchicagoBtc">Loading...</div>
+                                </div>
+                                <div class="chart-mini-container">
+                                    <canvas id="uchicagoChart"></canvas>
+                                </div>
+                            </div>
+
+                            <div class="university-card" data-university="pepperdine">
+                                <div class="university-header">
+                                    <h4>Pepperdine University</h4>
+                                    <span class="university-rank">#5 Most Expensive</span>
+                                </div>
+                                <div class="university-price">
+                                    <div class="price-usd">$93,512</div>
+                                    <div class="price-btc" id="pepperdineBtc">Loading...</div>
+                                </div>
+                                <div class="chart-mini-container">
+                                    <canvas id="pepperdineChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Comparison Section -->
+                    <div class="university-section">
+                        <h3><i class="fas fa-balance-scale"></i> Tuition vs Bitcoin: The Great Debasement</h3>
+                        <div class="comparison-container">
+                            <div class="comparison-chart-container">
+                                <canvas id="comparisonChart"></canvas>
+                            </div>
+                            <div class="comparison-insights">
+                                <div class="insight-card">
+                                    <h4>Key Insights</h4>
+                                    <ul>
+                                        <li>Harvard tuition in 2009: <strong id="harvard2009Btc">Loading...</strong> BTC</li>
+                                        <li>Harvard tuition in 2024: <strong id="harvard2024Btc">Loading...</strong> BTC</li>
+                                        <li>Bitcoin has made education <strong id="educationSavings">Loading...</strong>% cheaper</li>
+                                        <li>Peak education cost was in <strong>2022</strong> during crypto winter</li>
+                                    </ul>
+                                </div>
+                                <div class="insight-card">
+                                    <h4>The Bitcoin Education Standard</h4>
+                                    <p>While tuition costs have increased dramatically in USD terms, Bitcoin holders have seen education become significantly more affordable over time.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Money Supply Tab Content -->
+            <div class="tab-content" id="money-supply">
+                <div class="money-supply-header">
+                    <h2>Money Supply & Global Liquidity Analysis</h2>
+                </div>
+                
+                <div class="money-supply-sections">
+                    <!-- M2 Money Supply Section -->
+                    <div class="supply-section">
+                        <h3><i class="fas fa-chart-area"></i> US M2 Money Supply</h3>
+                        <div class="section-description">
+                            <p>The M2 money supply includes cash, checking deposits, savings deposits, and other liquid assets. Track how money printing affects the economy.</p>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="m2Chart"></canvas>
+                        </div>
+                        <div class="supply-stats">
+                            <div class="stat-item">
+                                <span class="stat-label">Current M2 Supply:</span>
+                                <span class="stat-value" id="currentM2">Loading...</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">YoY Growth:</span>
+                                <span class="stat-value" id="m2Growth">Loading...</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Since 2020:</span>
+                                <span class="stat-value" id="m2Since2020">Loading...</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Global Liquidity Index Section -->
+                    <div class="supply-section">
+                        <h3><i class="fas fa-globe-americas"></i> Global Liquidity Index</h3>
+                        <div class="section-description">
+                            <p>Global Liquidity Index based on major central bank balance sheets (Fed, ECB, BOJ, PBOC). Formula: (Fed + ECB + BOJ + PBOC Balance Sheets) / Global GDP</p>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="globalLiquidityChart"></canvas>
+                        </div>
+                    </div>
+
+
+                    <!-- Bitcoin M2-Adjusted Price Section -->
+                    <div class="supply-section">
+                        <h3><i class="fas fa-balance-scale"></i> Bitcoin Price Adjusted for M2 Growth</h3>
+                        <div class="section-description">
+                            <p>Bitcoin price adjusted for M2 money supply growth shows real purchasing power gains beyond monetary debasement.</p>
+                        </div>
+                        <div class="supply-stats">
+                            <div class="stat-item">
+                                <span class="stat-label">BTC Price (Nominal):</span>
+                                <span class="stat-value" id="btcNominalPrice">Loading...</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">BTC Price (M2-Adjusted):</span>
+                                <span class="stat-value" id="btcM2AdjustedPrice">Loading...</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Real Gains vs M2:</span>
+                                <span class="stat-value" id="btcRealGains">Loading...</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Analysis & Insights Section -->
+                    <div class="supply-section">
+                        <h3><i class="fas fa-lightbulb"></i> Money Supply Analysis</h3>
+                        <div class="analysis-container">
+                            <div class="analysis-grid">
+                                <div class="insight-card">
+                                    <h4>Money Printing Impact</h4>
+                                    <ul>
+                                        <li>M2 supply increased <strong id="m2IncreasePercent">40%</strong> since 2020</li>
+                                        <li>Average annual M2 growth: <strong id="avgM2Growth">7.2%</strong></li>
+                                        <li>Bitcoin's fixed supply makes it a hedge against debasement</li>
+                                    </ul>
+                                </div>
+                                <div class="insight-card">
+                                    <h4>Global Liquidity Cycles</h4>
+                                    <ul>
+                                        <li>Central banks coordinate liquidity injections</li>
+                                        <li>Risk assets rally during expansion phases</li>
+                                        <li>Bitcoin correlates with global liquidity trends</li>
+                                    </ul>
+                                </div>
+                                <div class="insight-card">
+                                    <h4>Bitcoin as Sound Money</h4>
+                                    <ul>
+                                        <li>Fixed 21M supply cap vs infinite fiat printing</li>
+                                        <li>Programmatic issuance reduces over time</li>
+                                        <li>Store of value against monetary debasement</li>
+                                    </ul>
+                                </div>
+                                <div class="insight-card">
+                                    <h4>Investment Implications</h4>
+                                    <ul>
+                                        <li>Monitor liquidity cycles for market timing</li>
+                                        <li>Bitcoin outperforms during high liquidity periods</li>
+                                        <li>M2-adjusted returns show true wealth preservation</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bitcoin24 Tab Content -->
+            <div class="tab-content" id="bitcoin24">
+                <div class="bitcoin24-header">
+                    <h2>Bitcoin24 - BTC Model</h2>
+                    <p>Interactive Bitcoin price forecasting model with scenario analysis</p>
+                </div>
+                
+                <div class="bitcoin24-container">
+                    <!-- Model Assumptions Section -->
+                    <div class="model-assumptions">
+                        <h3>Assumptions</h3>
+                        <div class="assumptions-grid">
+                            <div class="assumption-item">
+                                <label>2024 BTC Price ($k):</label>
+                                <input type="number" id="btc2024Price" value="95.0" step="0.1">
+                            </div>
+                        </div>
+                        
+                        <div class="scenario-selector">
+                            <h4>Choose Scenario:</h4>
+                            <div class="scenario-buttons">
+                                <button class="scenario-btn active" data-scenario="bear">Bear</button>
+                                <button class="scenario-btn" data-scenario="base">Base</button>
+                                <button class="scenario-btn" data-scenario="bull">Bull</button>
+                            </div>
+                        </div>
+                        
+                        <div class="scenario-params">
+                            <div class="param-group">
+                                <h5>2025 ARR (%)</h5>
+                                <div class="param-input">
+                                    <input type="number" id="arr2025" value="25.0" step="0.1" min="0" max="200">
+                                </div>
+                            </div>
+                            <div class="param-group">
+                                <h5>ARR reduction each year (%)</h5>
+                                <div class="param-input">
+                                    <input type="number" id="arrReduction" value="2.5" step="0.1" min="0" max="50">
+                                </div>
+                            </div>
+                            <div class="param-group">
+                                <h5>Steady State ARR (%)</h5>
+                                <div class="param-input">
+                                    <input type="number" id="steadyStateArr" value="20.0" step="0.1" min="0" max="100">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Results Section -->
+                    <div class="results-section">
+                        <h3>Results in Year 2045</h3>
+                        <div class="results-grid">
+                            <div class="result-item bear active">
+                                <h4>Bear</h4>
+                                <div class="result-values">
+                                    <div class="result-row">
+                                        <span>BTC Price ($M):</span>
+                                        <span id="bearPrice">3.2M</span>
+                                    </div>
+                                    <div class="result-row">
+                                        <span>BTC Mkt Cap ($T):</span>
+                                        <span id="bearMarketCap">68T</span>
+                                    </div>
+                                    <div class="result-row">
+                                        <span>21 Year ARR:</span>
+                                        <span id="bearARR">20.5%</span>
+                                    </div>
+                                    <div class="result-row">
+                                        <span>% of Total Assets:</span>
+                                        <span id="bearAssets">1.8%</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="result-item base">
+                                <h4>Base</h4>
+                                <div class="result-values">
+                                    <div class="result-row">
+                                        <span>BTC Price ($M):</span>
+                                        <span id="basePrice">13.4M</span>
+                                    </div>
+                                    <div class="result-row">
+                                        <span>BTC Mkt Cap ($T):</span>
+                                        <span id="baseMarketCap">281T</span>
+                                    </div>
+                                    <div class="result-row">
+                                        <span>21 Year ARR:</span>
+                                        <span id="baseARR">26.9%</span>
+                                    </div>
+                                    <div class="result-row">
+                                        <span>% of Total Assets:</span>
+                                        <span id="baseAssets">7.0%</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="result-item bull">
+                                <h4>Bull</h4>
+                                <div class="result-values">
+                                    <div class="result-row">
+                                        <span>BTC Price ($M):</span>
+                                        <span id="bullPrice">49.2M</span>
+                                    </div>
+                                    <div class="result-row">
+                                        <span>BTC Mkt Cap ($T):</span>
+                                        <span id="bullMarketCap">1,032T</span>
+                                    </div>
+                                    <div class="result-row">
+                                        <span>21 Year ARR:</span>
+                                        <span id="bullARR">37.1%</span>
+                                    </div>
+                                    <div class="result-row">
+                                        <span>% of Total Assets:</span>
+                                        <span id="bullAssets">21.8%</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Market Cap Visualization -->
+                        <div class="market-cap-display">
+                            <h4>Bitcoin Market Cap in 2045 ($T)</h4>
+                            <div class="market-cap-bars">
+                                <div class="cap-bar bear">
+                                    <span class="cap-label">Bear</span>
+                                    <div class="cap-value">$68T</div>
+                                </div>
+                                <div class="cap-bar base">
+                                    <span class="cap-label">Base</span>
+                                    <div class="cap-value">$281T</div>
+                                </div>
+                                <div class="cap-bar bull">
+                                    <span class="cap-label">Bull</span>
+                                    <div class="cap-value">$1,032T</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Forecast Chart and Output Table -->
+                <div class="forecast-section">
+                    <div class="forecast-chart-container">
+                        <h3>2024-2045 BTC Forecast</h3>
+                        <div class="chart-container">
+                            <canvas id="bitcoin24Chart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="output-table-container">
+                        <h3>Output Table</h3>
+                        <div class="table-wrapper">
+                            <table id="outputTable" class="output-table">
+                                <thead>
+                                    <tr>
+                                        <th>Year</th>
+                                        <th>BTC Price ($M)</th>
+                                        <th>ARR</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="outputTableBody">
+                                    <!-- Table rows will be populated by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="footer">
+            <p>&copy; 2024 Bitcoin Price Tracker. Data provided by TradingView.</p>
+            <p>Last updated: <span id="lastUpdated">--</span></p>
+        </footer>
+    </div>
+
+    <!-- Bits Explanation Section -->
+    <div class="explanation-section">
+        <div class="explanation-content">
+            <h3>About Bits</h3>
+            <div class="explanation-grid">
+                <div class="explanation-item">
+                    <strong>1 bit = 100 satoshis</strong> • <strong>1 Bitcoin = 1,000,000 bits</strong> • Stock prices shown in bits for easier Bitcoin-denominated pricing
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stock/Commodity Chart Modal -->
+    <div id="chartModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2 id="modalTitle">Chart</h2>
+            <div class="chart-container">
+                <canvas id="modalChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- script-new.js already included in the <head> and initializes on DOMContentLoaded -->
+</body>
+</html>

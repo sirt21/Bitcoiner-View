@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How Much Bitcoin Did I Spend Today - Bitcoiner View</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .spending-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .spending-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        
+        .spending-header h1 {
+            color: #f7931a;
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .period-toggle {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 2rem;
+        }
+        
+        .toggle-btn {
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #ffffff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .toggle-btn:first-child {
+            border-radius: 8px 0 0 8px;
+        }
+        
+        .toggle-btn:last-child {
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .toggle-btn.active {
+            background: #f7931a;
+            border-color: #f7931a;
+            font-weight: bold;
+        }
+        
+        .toggle-btn:hover:not(.active) {
+            background: rgba(247, 147, 26, 0.2);
+        }
+        
+        .category-list {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .category-entry {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            flex-wrap: wrap;
+        }
+        
+        .category-entry select {
+            flex: 2;
+            min-width: 150px;
+        }
+        
+        .category-entry input[type="number"] {
+            flex: 1;
+            min-width: 100px;
+        }
+        
+        .category-entry input[type="date"] {
+            flex: 1;
+            min-width: 120px;
+        }
+        
+        .remove-btn {
+            background: #dc3545;
+            border: none;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+        
+        .remove-btn:hover {
+            background: #c82333;
+            transform: scale(1.05);
+        }
+        
+        .add-category-btn {
+            background: rgba(247, 147, 26, 0.2);
+            border: 1px solid #f7931a;
+            color: #f7931a;
+            padding: 10px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            margin-bottom: 1rem;
+        }
+        
+        .add-category-btn:hover {
+            background: rgba(247, 147, 26, 0.3);
+            transform: translateY(-1px);
+        }
+        
+        .total-spending {
+            background: rgba(247, 147, 26, 0.1);
+            border: 1px solid rgba(247, 147, 26, 0.3);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+        
+        .total-amount {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #f7931a;
+            margin-bottom: 0.5rem;
+        }
+        
+        .total-label {
+            color: #ffffff;
+            opacity: 0.8;
+        }
+        
+        .spending-calculator {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .input-group label {
+            display: block;
+            color: #ffffff;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+        
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: #ffffff;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .input-group select option {
+            background: #1a1a1a;
+            color: #ffffff;
+        }
+        
+        .input-group input:focus, .input-group select:focus {
+            outline: none;
+            border-color: #f7931a;
+            background: rgba(247, 147, 26, 0.1);
+        }
+        
+        .calculate-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #f7931a, #ff6b35);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .calculate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(247, 147, 26, 0.3);
+        }
+        
+        .results-section {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: none;
+        }
+        
+        .result-card {
+            background: rgba(247, 147, 26, 0.1);
+            border: 1px solid rgba(247, 147, 26, 0.3);
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+        
+        .result-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #f7931a;
+            margin-bottom: 0.5rem;
+        }
+        
+        .result-label {
+            color: #ffffff;
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        .spending-history {
+            margin-top: 2rem;
+        }
+        
+        .history-item {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: between;
+            align-items: center;
+        }
+        
+        .history-date {
+            color: #f7931a;
+            font-weight: 500;
+        }
+        
+        .history-amount {
+            color: #ffffff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="container">
+                <h1 class="logo" onclick="window.location.href='index.html'" style="cursor: pointer;">Bitcoiner View</h1>
+                <nav class="nav-links">
+                    <a href="index.html">Dashboard</a>
+                    <a href="spending.html" class="active">Bitcoin Spending</a>
+                    <a href="macro.html">Macro</a>
+                    <a href="dca-lump.html">DCA/LUMP</a>
+                    <a href="contact.html">Contact</a>
+                </nav>
+            </div>
+        </header>
+
+        <div class="spending-container">
+            <div class="spending-header">
+                <h1><i class="fas fa-calculator"></i> How Much Bitcoin Did I Spend?</h1>
+                <p>Calculate your spending in Bitcoin terms and track your purchasing power over time.</p>
+                
+                <div class="period-toggle">
+                    <button class="toggle-btn active" onclick="togglePeriod('daily')">Daily</button>
+                    <button class="toggle-btn" onclick="togglePeriod('monthly')">Monthly</button>
+                </div>
+            </div>
+
+            <div class="spending-calculator">
+                <h3><i class="fas fa-money-bill-wave"></i> <span id="calculatorTitle">Daily</span> Spending Calculator</h3>
+                
+                <div class="input-group">
+                    <label for="incomeAmount"><span id="incomeLabel">Daily</span> Income ($)</label>
+                    <input type="number" id="incomeAmount" placeholder="Enter your income" step="0.01" min="0">
+                </div>
+                
+                <div class="category-list">
+                    <h4><i class="fas fa-list"></i> Spending Categories</h4>
+                    <div id="categoryEntries">
+                        <!-- Category entries will be added here -->
+                    </div>
+                    <button type="button" class="add-category-btn" onclick="addCategoryEntry()">
+                        <i class="fas fa-plus"></i> Add Category
+                    </button>
+                    
+                    <div class="total-spending" id="totalSpending" style="display: none;">
+                        <div class="total-amount" id="totalAmount">$0.00</div>
+                        <div class="total-label">Total Spending</div>
+                    </div>
+                </div>
+                
+                <div class="input-group">
+                    <label for="btcPrice">Current Bitcoin Price ($)</label>
+                    <input type="number" id="btcPrice" placeholder="Current BTC price" step="0.01" min="0">
+                </div>
+                
+                <button class="calculate-btn" onclick="calculateSpending()">
+                    <i class="fas fa-calculator"></i> Calculate Bitcoin Analysis
+                </button>
+            </div>
+
+            <div class="results-section" id="resultsSection">
+                <h3><i class="fas fa-chart-line"></i> Your Bitcoin Spending Analysis</h3>
+                
+                <div class="result-card">
+                    <div class="result-value" id="btcSpent">0.00000000</div>
+                    <div class="result-label">Bitcoin Spent</div>
+                </div>
+                
+                <div class="result-card">
+                    <div class="result-value" id="satoshisSpent">0</div>
+                    <div class="result-label">Satoshis Spent</div>
+                </div>
+                
+                <div class="result-card">
+                    <div class="result-value" id="percentageOfBtc">0.00%</div>
+                    <div class="result-label">Percentage of 1 Bitcoin</div>
+                </div>
+                
+                <div class="result-card">
+                    <div class="result-value" id="btcSaved">0.00000000</div>
+                    <div class="result-label">Bitcoin Saved</div>
+                </div>
+                
+                <div class="result-card">
+                    <div class="result-value" id="savingsRate">0.00%</div>
+                    <div class="result-label">Savings Rate</div>
+                </div>
+                
+                <div class="spending-history" id="spendingHistory">
+                    <h4><i class="fas fa-history"></i> Recent Spending History</h4>
+                    <div id="historyList">
+                        <!-- History items will be added here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let spendingHistory = JSON.parse(localStorage.getItem('bitcoinSpendingHistory')) || [];
+        let currentPeriod = 'daily';
+        let categoryEntries = [];
+        let entryCounter = 0;
+
+        // Fetch current Bitcoin price on page load
+        window.addEventListener('load', async () => {
+            try {
+                const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd');
+                const data = await response.json();
+                const btcPrice = data.bitcoin.usd;
+                document.getElementById('btcPrice').value = btcPrice.toFixed(2);
+            } catch (error) {
+                console.log('Could not fetch Bitcoin price, using default');
+                document.getElementById('btcPrice').value = '95000';
+            }
+        });
+
+        function togglePeriod(period) {
+            currentPeriod = period;
+            
+            // Update toggle buttons
+            document.querySelectorAll('.toggle-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Update labels
+            const periodCapitalized = period.charAt(0).toUpperCase() + period.slice(1);
+            document.getElementById('calculatorTitle').textContent = periodCapitalized;
+            document.getElementById('incomeLabel').textContent = periodCapitalized;
+            
+            // Update placeholders
+            const incomeInput = document.getElementById('incomeAmount');
+            const spendingInput = document.getElementById('spendingAmount');
+            
+            if (period === 'daily') {
+                incomeInput.placeholder = 'Enter your daily income';
+                spendingInput.placeholder = 'Enter daily amount spent';
+            } else {
+                incomeInput.placeholder = 'Enter your monthly income';
+                spendingInput.placeholder = 'Enter monthly amount spent';
+            }
+        }
+        
+        function addCategoryEntry() {
+            entryCounter++;
+            const entryId = `entry_${entryCounter}`;
+            
+            const categoryEntry = document.createElement('div');
+            categoryEntry.className = 'category-entry';
+            categoryEntry.id = entryId;
+            categoryEntry.innerHTML = `
+                <select onchange="updateTotalSpending()">
+                    <option value="">Select category...</option>
+                    <option value="rent">Rent</option>
+                    <option value="groceries">Groceries</option>
+                    <option value="eating-out">Eating Out</option>
+                    <option value="electricity">Electricity</option>
+                    <option value="heating">Heating</option>
+                    <option value="tech-gadgets">Tech Gadgets</option>
+                    <option value="travel">Travel</option>
+                    <option value="transportation">Transportation</option>
+                    <option value="leisure">Leisure Activities</option>
+                    <option value="education">Education</option>
+                    <option value="other">Other</option>
+                </select>
+                <input type="number" placeholder="Amount ($)" step="0.01" min="0" oninput="updateTotalSpending()">
+                <input type="date" placeholder="Date (optional)" title="Leave empty to use current date">
+                <button type="button" class="remove-btn" onclick="removeCategoryEntry('${entryId}')">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+            
+            document.getElementById('categoryEntries').appendChild(categoryEntry);
+            updateTotalSpending();
+        }
+        
+        function removeCategoryEntry(entryId) {
+            const entry = document.getElementById(entryId);
+            if (entry) {
+                entry.remove();
+                updateTotalSpending();
+            }
+        }
+        
+        function updateTotalSpending() {
+            const entries = document.querySelectorAll('.category-entry');
+            let total = 0;
+            let hasEntries = false;
+            
+            entries.forEach(entry => {
+                const amountInput = entry.querySelector('input[type="number"]');
+                const amount = parseFloat(amountInput.value) || 0;
+                if (amount > 0) {
+                    total += amount;
+                    hasEntries = true;
+                }
+            });
+            
+            const totalSpendingDiv = document.getElementById('totalSpending');
+            const totalAmountSpan = document.getElementById('totalAmount');
+            
+            if (hasEntries) {
+                totalAmountSpan.textContent = `$${total.toFixed(2)}`;
+                totalSpendingDiv.style.display = 'block';
+            } else {
+                totalSpendingDiv.style.display = 'none';
+            }
+        }
+        
+        async function getHistoricalBitcoinPrice(date) {
+            try {
+                const formattedDate = date.split('-').reverse().join('-'); // Convert YYYY-MM-DD to DD-MM-YYYY
+                const response = await fetch(`https://api.coingecko.com/api/v3/coins/bitcoin/history?date=${formattedDate}`);
+                const data = await response.json();
+                return data.market_data?.current_price?.usd || null;
+            } catch (error) {
+                console.error('Error fetching historical Bitcoin price:', error);
+                return null;
+            }
+        }
+        
+        async function calculateSpending() {
+            const incomeAmount = parseFloat(document.getElementById('incomeAmount').value);
+            const currentBtcPrice = parseFloat(document.getElementById('btcPrice').value);
+            
+            // Collect all category spending
+            const entries = document.querySelectorAll('.category-entry');
+            let totalSpending = 0;
+            let totalBtcSpent = 0;
+            let categories = [];
+            
+            if (entries.length === 0) {
+                alert('Please add at least one spending category');
+                return;
+            }
+            
+            // Show loading state
+            const calculateBtn = document.querySelector('.calculate-btn');
+            const originalText = calculateBtn.innerHTML;
+            calculateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Calculating...';
+            calculateBtn.disabled = true;
+            
+            try {
+                for (const entry of entries) {
+                    const categorySelect = entry.querySelector('select');
+                    const amountInput = entry.querySelector('input[type="number"]');
+                    const dateInput = entry.querySelector('input[type="date"]');
+                    
+                    const category = categorySelect.value;
+                    const amount = parseFloat(amountInput.value) || 0;
+                    const spendingDate = dateInput.value;
+                    
+                    if (category && amount > 0) {
+                        totalSpending += amount;
+                        
+                        let btcPrice = currentBtcPrice;
+                        let actualDate = new Date().toLocaleDateString();
+                        
+                        // If date is provided, fetch historical price
+                        if (spendingDate) {
+                            const historicalPrice = await getHistoricalBitcoinPrice(spendingDate);
+                            if (historicalPrice) {
+                                btcPrice = historicalPrice;
+                                actualDate = new Date(spendingDate).toLocaleDateString();
+                            }
+                        }
+                        
+                        const btcAmount = amount / btcPrice;
+                        totalBtcSpent += btcAmount;
+                        
+                        categories.push({ 
+                            category, 
+                            amount, 
+                            date: actualDate,
+                            btcPrice: btcPrice,
+                            btcAmount: btcAmount
+                        });
+                    }
+                }
+                
+                if (totalSpending <= 0) {
+                    alert('Please add at least one category with a valid spending amount');
+                    return;
+                }
+                
+                const satoshisSpent = Math.round(totalBtcSpent * 100000000);
+                const percentageOfBtc = (totalBtcSpent * 100);
+                
+                // Calculate Bitcoin saved (if income provided)
+                let btcSaved = 0;
+                let savingsRate = 0;
+                
+                if (incomeAmount && incomeAmount > 0) {
+                    const savedAmount = incomeAmount - totalSpending;
+                    btcSaved = savedAmount / currentBtcPrice; // Use current price for savings
+                    savingsRate = (savedAmount / incomeAmount) * 100;
+                }
+                
+                // Update results
+                document.getElementById('btcSpent').textContent = totalBtcSpent.toFixed(8);
+                document.getElementById('satoshisSpent').textContent = satoshisSpent.toLocaleString();
+                document.getElementById('percentageOfBtc').textContent = percentageOfBtc.toFixed(6) + '%';
+                document.getElementById('btcSaved').textContent = btcSaved.toFixed(8);
+                document.getElementById('savingsRate').textContent = savingsRate.toFixed(2) + '%';
+                
+                // Show results section
+                document.getElementById('resultsSection').style.display = 'block';
+                
+                // Add to history
+                const historyItem = {
+                    date: new Date().toLocaleDateString(),
+                    period: currentPeriod,
+                    categories: categories,
+                    incomeAmount: incomeAmount || 0,
+                    totalSpending: totalSpending,
+                    totalBtcSpent: totalBtcSpent,
+                    btcSaved: btcSaved,
+                    satoshisSpent: satoshisSpent,
+                    savingsRate: savingsRate
+                };
+                
+                spendingHistory.unshift(historyItem);
+                if (spendingHistory.length > 10) {
+                    spendingHistory = spendingHistory.slice(0, 10);
+                }
+                
+                localStorage.setItem('bitcoinSpendingHistory', JSON.stringify(spendingHistory));
+                updateHistoryDisplay();
+                
+            } catch (error) {
+                console.error('Error calculating spending:', error);
+                alert('Error calculating spending. Please try again.');
+            } finally {
+                // Restore button state
+                calculateBtn.innerHTML = originalText;
+                calculateBtn.disabled = false;
+            }
+        }
+        
+        function updateHistoryDisplay() {
+            const historyList = document.getElementById('historyList');
+            historyList.innerHTML = '';
+            
+            spendingHistory.forEach(item => {
+                const historyItem = document.createElement('div');
+                historyItem.className = 'history-item';
+                
+                // Handle legacy items and new multi-category items
+                const period = item.period || 'daily';
+                const btcSaved = item.btcSaved || 0;
+                const savingsRate = item.savingsRate || 0;
+                
+                let categoriesDisplay = '';
+                let totalSpending = 0;
+                
+                if (item.categories && Array.isArray(item.categories)) {
+                    // New multi-category format with dates and historical prices
+                    totalSpending = item.totalSpending || 0;
+                    const categoryList = item.categories.map(cat => {
+                        const dateStr = cat.date ? ` (${cat.date})` : '';
+                        const priceStr = cat.btcPrice ? ` @$${cat.btcPrice.toFixed(0)}` : '';
+                        return `${cat.category}: $${cat.amount.toFixed(2)}${dateStr}${priceStr}`;
+                    }).join(', ');
+                    categoriesDisplay = categoryList;
+                } else {
+                    // Legacy single category format
+                    const category = item.category || 'Uncategorized';
+                    totalSpending = item.spendingAmount || item.usdAmount || 0;
+                    categoriesDisplay = `${category}: $${totalSpending.toFixed(2)}`;
+                }
+                
+                historyItem.innerHTML = `
+                    <div>
+                        <div class="history-date">${item.date} (${period})</div>
+                        <div class="history-amount">${categoriesDisplay} → ${(item.totalBtcSpent || item.btcSpent).toFixed(8)} BTC</div>
+                        <div class="history-amount">Total: $${totalSpending.toFixed(2)}</div>
+                        ${btcSaved > 0 ? `<div class="history-amount">Saved: ${btcSaved.toFixed(8)} BTC (${savingsRate.toFixed(1)}%)</div>` : ''}
+                    </div>
+                    <div class="history-amount">${item.satoshisSpent.toLocaleString()} sats</div>
+                `;
+                historyList.appendChild(historyItem);
+            });
+        }
+        
+        // Initialize with one category entry
+        window.addEventListener('load', () => {
+            addCategoryEntry();
+        });
+        
+        // Load history on page load
+        updateHistoryDisplay();
+    </script>
+</body>
+</html>

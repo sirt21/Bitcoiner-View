@@ -218,6 +218,293 @@ body.light-mode {
     pointer-events: none;
 }
 
+/* Fear & Greed Index Styles */
+.fear-greed-container {
+    padding: 2rem;
+}
+
+.fear-greed-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    align-items: start;
+}
+
+.fear-greed-gauge {
+    text-align: center;
+}
+
+.gauge-title {
+    color: #f7931a;
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+    font-weight: bold;
+}
+
+.gauge-container {
+    position: relative;
+    width: 300px;
+    height: 150px;
+    margin: 0 auto;
+}
+
+.gauge-background {
+    width: 300px;
+    height: 150px;
+    background: conic-gradient(
+        from 180deg,
+        #dc3545 0deg,
+        #fd7e14 36deg,
+        #ffc107 72deg,
+        #28a745 108deg,
+        #198754 144deg
+    );
+    border-radius: 150px 150px 0 0;
+    position: relative;
+}
+
+.gauge-background::after {
+    content: '';
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    right: 10px;
+    bottom: 0;
+    background: #000;
+    border-radius: 140px 140px 0 0;
+}
+
+.gauge-needle {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    width: 4px;
+    height: 120px;
+    background: #f7931a;
+    transform-origin: bottom center;
+    border-radius: 2px;
+    box-shadow: 0 0 10px #f7931a;
+    z-index: 10;
+    transform: translateX(-50%) rotate(-90deg);
+    transition: transform 0.5s ease;
+}
+
+.gauge-center {
+    position: absolute;
+    bottom: -5px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 12px;
+    height: 12px;
+    background: #f7931a;
+    border-radius: 50%;
+    z-index: 15;
+}
+
+.gauge-value {
+    position: absolute;
+    bottom: -40px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 2rem;
+    font-weight: bold;
+    color: #f7931a;
+}
+
+.gauge-label {
+    position: absolute;
+    bottom: -70px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 1rem;
+    color: #fff;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.fear-greed-chart {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    padding: 1.5rem;
+}
+
+.chart-title {
+    color: #f7931a;
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+    font-weight: bold;
+    text-align: center;
+}
+
+#fearGreedChart {
+    width: 100% !important;
+    height: 300px !important;
+}
+
+@media (max-width: 768px) {
+    .fear-greed-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .gauge-container {
+        width: 250px;
+        height: 125px;
+    }
+    
+    .gauge-background {
+        width: 250px;
+        height: 125px;
+    }
+    
+    .gauge-needle {
+        height: 100px;
+    }
+}
+
+/* Goal Section Styles */
+.goal-section {
+    margin: 1.5rem 0;
+    padding: 1.5rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+}
+
+.goal-header {
+    margin-bottom: 1rem;
+}
+
+.goal-toggle {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: #f7931a;
+    user-select: none;
+}
+
+.goal-toggle input[type="checkbox"] {
+    display: none;
+}
+
+.checkmark {
+    position: relative;
+    width: 20px;
+    height: 20px;
+    background: transparent;
+    border: 2px solid #f7931a;
+    border-radius: 4px;
+    margin-right: 10px;
+    transition: all 0.3s ease;
+}
+
+.goal-toggle input[type="checkbox"]:checked + .checkmark {
+    background: #f7931a;
+}
+
+.goal-toggle input[type="checkbox"]:checked + .checkmark::after {
+    content: '✓';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    color: #000;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.goal-inputs {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.goal-results {
+    margin-top: 1rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.goal-card {
+    border: 2px solid #f7931a;
+    background: rgba(247, 147, 26, 0.1);
+}
+
+.goal-card .result-value {
+    color: #f7931a;
+}
+
+.goal-card .result-label {
+    color: #fff;
+    font-weight: 600;
+}
+
+/* ARR Section Styles */
+.arr-section {
+    margin: 1.5rem 0;
+    padding: 1.5rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+}
+
+.arr-header {
+    margin-bottom: 1rem;
+}
+
+.arr-toggle {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: #28a745;
+    user-select: none;
+}
+
+.arr-toggle input[type="checkbox"] {
+    display: none;
+}
+
+.arr-toggle .checkmark {
+    border-color: #28a745;
+}
+
+.arr-toggle input[type="checkbox"]:checked + .checkmark {
+    background: #28a745;
+}
+
+.arr-inputs {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.arr-results {
+    margin-top: 1rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.arr-card {
+    border: 2px solid #28a745;
+    background: rgba(40, 167, 69, 0.1);
+}
+
+.arr-card .result-value {
+    color: #28a745;
+}
+
+.arr-card .result-label {
+    color: #fff;
+    font-weight: 600;
+}
+
 /* DCA/LUMP Page Styles */
 .page-header {
     text-align: center;

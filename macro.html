@@ -837,7 +837,8 @@
 
         // Fear & Greed Index functionality
         async function loadFearGreedIndex() {
-            const display = document.getElementById('fearGreedDisplay');
+            const gaugeValue = document.getElementById('gauge-value');
+            const gaugeLabel = document.getElementById('gauge-label');
             const canvas = document.getElementById('fearGreedChart');
             
             try {
@@ -846,69 +847,43 @@
                 const data = await response.json();
                 
                 if (data.data && data.data.length > 0) {
-                    createFearGreedDisplay(data.data);
+                    updateFearGreedGauge(data.data[0]);
                     createFearGreedChart(data.data);
-                    display.style.display = 'block';
-                    canvas.style.display = 'block';
                 } else {
                     throw new Error('No data received');
                 }
             } catch (error) {
                 console.error('Error fetching Fear & Greed data:', error);
-                display.innerHTML = `
-                    <div class="error-message">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        Unable to load Fear & Greed Index data. Please try again later.
-                    </div>
-                `;
+                gaugeValue.textContent = '--';
+                gaugeLabel.textContent = 'Error loading data';
             }
         }
 
-        function createFearGreedDisplay(data) {
-            const currentData = data[0];
+        function updateFearGreedGauge(currentData) {
             const value = parseInt(currentData.value);
             const classification = currentData.value_classification;
             
-            // Create gauge-style display
-            const display = document.getElementById('fearGreedDisplay');
-            display.innerHTML = `
-                <div style="text-align: center; margin-bottom: 2rem;">
-                    <div style="position: relative; width: 300px; height: 150px; margin: 0 auto;">
-                        <div style="width: 300px; height: 150px; background: conic-gradient(
-                            from 180deg,
-                            #dc3545 0deg,
-                            #fd7e14 36deg,
-                            #ffc107 72deg,
-                            #28a745 108deg,
-                            #198754 144deg
-                        ); border-radius: 150px 150px 0 0; position: relative;">
-                            <div style="position: absolute; top: 10px; left: 10px; right: 10px; bottom: 0; 
-                                background: #000; border-radius: 140px 140px 0 0;"></div>
-                            <div style="position: absolute; bottom: 0; left: 50%; transform: translateX(-50%) rotate(${(value / 100) * 180 - 90}deg); 
-                                width: 4px; height: 120px; background: #f7931a; transform-origin: bottom; 
-                                border-radius: 2px; box-shadow: 0 0 10px #f7931a;"></div>
-                        </div>
-                        <div style="position: absolute; bottom: -10px; left: 50%; transform: translateX(-50%); 
-                            background: #f7931a; color: #000; padding: 8px 16px; border-radius: 20px; 
-                            font-weight: bold; font-size: 1.1rem;">
-                            ${value}
-                        </div>
-                    </div>
-                    <div style="margin-top: 1rem;">
-                        <h3 style="color: #f7931a; margin: 0.5rem 0; font-size: 1.5rem;">${classification}</h3>
-                        <p style="color: #ccc; margin: 0; font-size: 0.9rem;">
-                            Last updated: ${new Date(currentData.timestamp * 1000).toLocaleDateString()}
-                        </p>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; margin-top: 1rem; font-size: 0.8rem; color: #999;">
-                        <span>Extreme Fear</span>
-                        <span>Fear</span>
-                        <span>Neutral</span>
-                        <span>Greed</span>
-                        <span>Extreme Greed</span>
-                    </div>
-                </div>
-            `;
+            // Update gauge elements
+            const gaugeValue = document.getElementById('gauge-value');
+            const gaugeLabel = document.getElementById('gauge-label');
+            const gaugeNeedle = document.getElementById('gauge-needle');
+            
+            gaugeValue.textContent = value;
+            gaugeLabel.textContent = classification;
+            
+            // Update needle rotation (0-100 maps to -90deg to 90deg)
+            const rotation = (value / 100) * 180 - 90;
+            gaugeNeedle.style.transform = `translateX(-50%) rotate(${rotation}deg)`;
+            
+            // Update color based on value
+            let color = '#ffc107'; // Default yellow
+            if (value <= 25) color = '#dc3545'; // Red for extreme fear
+            else if (value <= 45) color = '#fd7e14'; // Orange for fear
+            else if (value <= 55) color = '#ffc107'; // Yellow for neutral
+            else if (value <= 75) color = '#28a745'; // Green for greed
+            else color = '#198754'; // Dark green for extreme greed
+            
+            gaugeValue.style.color = color;
         }
 
         function createFearGreedChart(data) {

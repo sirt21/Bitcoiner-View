@@ -313,6 +313,40 @@
                     <input type="number" id="btcPrice" placeholder="Current BTC price" step="0.01" min="0">
                 </div>
                 
+                <!-- Bitcoin Goal Section -->
+                <div class="goal-section">
+                    <div class="goal-header">
+                        <label class="goal-toggle">
+                            <input type="checkbox" id="enableGoal" onchange="toggleGoalSection()">
+                            <span class="checkmark"></span>
+                            Set Bitcoin Holding Goal (Optional)
+                        </label>
+                    </div>
+                    <div class="goal-inputs" id="goalInputs" style="display: none;">
+                        <div class="input-group">
+                            <label for="btcGoal">Bitcoin Goal (BTC)</label>
+                            <input type="number" id="btcGoal" placeholder="e.g., 1.0" step="0.00000001" min="0">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Bitcoin ARR Projection Section -->
+                <div class="arr-section">
+                    <div class="arr-header">
+                        <label class="arr-toggle">
+                            <input type="checkbox" id="enableARR" onchange="toggleARRSection()">
+                            <span class="checkmark"></span>
+                            Bitcoin ARR Projection (Optional)
+                        </label>
+                    </div>
+                    <div class="arr-inputs" id="arrInputs" style="display: none;">
+                        <div class="input-group">
+                            <label for="btcARR">Estimated Bitcoin Annual Return Rate (%)</label>
+                            <input type="number" id="btcARR" placeholder="e.g., 20" step="0.1" min="0" max="1000">
+                        </div>
+                    </div>
+                </div>
+                
                 <button class="calculate-btn" onclick="calculateSpending()">
                     <i class="fas fa-calculator"></i> Calculate Bitcoin Analysis
                 </button>
@@ -346,6 +380,42 @@
                     <div class="result-label">Savings Rate</div>
                 </div>
                 
+                <!-- Goal Progress Cards (shown when goal is set) -->
+                <div class="goal-results" id="goalResults" style="display: none;">
+                    <div class="result-card goal-card">
+                        <div class="result-value" id="spentVsGoal">0.00%</div>
+                        <div class="result-label">Spent vs Goal</div>
+                    </div>
+                    
+                    <div class="result-card goal-card">
+                        <div class="result-value" id="savedVsGoal">0.00%</div>
+                        <div class="result-label">Saved vs Goal</div>
+                    </div>
+                    
+                    <div class="result-card goal-card">
+                        <div class="result-value" id="goalProgress">0.00%</div>
+                        <div class="result-label">Goal Progress</div>
+                    </div>
+                </div>
+                
+                <!-- ARR Projection Results (shown when ARR is enabled) -->
+                <div class="arr-results" id="arrResults" style="display: none;">
+                    <div class="result-card arr-card">
+                        <div class="result-value" id="timeToGoal">--</div>
+                        <div class="result-label">Time to Reach Goal</div>
+                    </div>
+                    
+                    <div class="result-card arr-card">
+                        <div class="result-value" id="futureValue">$0</div>
+                        <div class="result-label">Future Portfolio Value</div>
+                    </div>
+                    
+                    <div class="result-card arr-card">
+                        <div class="result-value" id="monthlyNeeded">0.00000000</div>
+                        <div class="result-label">BTC Needed Monthly</div>
+                    </div>
+                </div>
+                
                 <div class="spending-history" id="spendingHistory">
                     <h4><i class="fas fa-history"></i> Recent Spending History</h4>
                     <div id="historyList">
@@ -361,6 +431,34 @@
         let currentPeriod = 'daily';
         let categoryEntries = [];
         let entryCounter = 0;
+        
+        // Toggle goal section visibility
+        function toggleGoalSection() {
+            const goalInputs = document.getElementById('goalInputs');
+            const enableGoal = document.getElementById('enableGoal');
+            
+            if (enableGoal.checked) {
+                goalInputs.style.display = 'block';
+            } else {
+                goalInputs.style.display = 'none';
+                // Hide goal results when disabled
+                document.getElementById('goalResults').style.display = 'none';
+            }
+        }
+        
+        // Toggle ARR section visibility
+        function toggleARRSection() {
+            const arrInputs = document.getElementById('arrInputs');
+            const enableARR = document.getElementById('enableARR');
+            
+            if (enableARR.checked) {
+                arrInputs.style.display = 'block';
+            } else {
+                arrInputs.style.display = 'none';
+                // Hide ARR results when disabled
+                document.getElementById('arrResults').style.display = 'none';
+            }
+        }
 
         // Fetch current Bitcoin price on page load
         window.addEventListener('load', async () => {
@@ -371,7 +469,7 @@
                 document.getElementById('btcPrice').value = btcPrice.toFixed(2);
             } catch (error) {
                 console.log('Could not fetch Bitcoin price, using default');
-                document.getElementById('btcPrice').value = '95000';
+                document.getElementById('btcPrice').value = '110929';
             }
         });
 
@@ -561,6 +659,91 @@
                 document.getElementById('percentageOfBtc').textContent = percentageOfBtc.toFixed(6) + '%';
                 document.getElementById('btcSaved').textContent = btcSaved.toFixed(8);
                 document.getElementById('savingsRate').textContent = savingsRate.toFixed(2) + '%';
+                
+                // Calculate goal-related metrics if goal is enabled
+                const goalEnabled = document.getElementById('enableGoal').checked;
+                const goalResults = document.getElementById('goalResults');
+                
+                if (goalEnabled) {
+                    const btcGoal = parseFloat(document.getElementById('btcGoal').value) || 0;
+                    
+                    if (btcGoal > 0) {
+                        const spentVsGoalPercent = (totalBtcSpent / btcGoal) * 100;
+                        const savedVsGoalPercent = (btcSaved / btcGoal) * 100;
+                        const goalProgressPercent = ((btcSaved) / btcGoal) * 100; // Assuming current holdings = saved amount
+                        
+                        document.getElementById('spentVsGoal').textContent = spentVsGoalPercent.toFixed(4) + '%';
+                        document.getElementById('savedVsGoal').textContent = savedVsGoalPercent.toFixed(4) + '%';
+                        document.getElementById('goalProgress').textContent = goalProgressPercent.toFixed(2) + '%';
+                        
+                        goalResults.style.display = 'block';
+                    } else {
+                        goalResults.style.display = 'none';
+                    }
+                } else {
+                    goalResults.style.display = 'none';
+                }
+                
+                // Calculate ARR projections if enabled
+                const arrEnabled = document.getElementById('enableARR').checked;
+                const arrResults = document.getElementById('arrResults');
+                
+                if (arrEnabled && goalEnabled) {
+                    const btcARR = parseFloat(document.getElementById('btcARR').value) || 0;
+                    const btcGoal = parseFloat(document.getElementById('btcGoal').value) || 0;
+                    
+                    if (btcARR > 0 && btcGoal > 0 && btcSaved > 0 && currentBtcPrice > 0) {
+                        // Calculate time to reach goal with compound growth
+                        const monthlyARR = btcARR / 100 / 12; // Convert annual % to monthly decimal
+                        const monthlySavings = currentPeriod === 'daily' ? btcSaved * 30 : btcSaved;
+                        
+                        // Calculate months needed using compound interest formula
+                        // Future Value = Present Value * (1 + r)^n + Monthly Payment * [((1 + r)^n - 1) / r]
+                        // Solving for n (number of months)
+                        let monthsNeeded = 0;
+                        let currentValue = btcSaved;
+                        
+                        while (currentValue < btcGoal && monthsNeeded < 1200) { // Max 100 years
+                            currentValue = currentValue * (1 + monthlyARR) + monthlySavings;
+                            monthsNeeded++;
+                        }
+                        
+                        const yearsNeeded = monthsNeeded / 12;
+                        // Calculate future Bitcoin price with compound growth
+                        const futureBtcPrice = currentBtcPrice * Math.pow(1 + (btcARR / 100), yearsNeeded);
+                        const futurePortfolioValue = currentValue * futureBtcPrice;
+                        const monthlyBTCNeeded = monthlySavings;
+                        
+                        // Format time display
+                        let timeDisplay = '';
+                        if (yearsNeeded < 1) {
+                            timeDisplay = `${monthsNeeded} months`;
+                        } else if (yearsNeeded < 100) {
+                            const years = Math.floor(yearsNeeded);
+                            const months = Math.round((yearsNeeded - years) * 12);
+                            timeDisplay = months > 0 ? `${years}y ${months}m` : `${years} years`;
+                        } else {
+                            timeDisplay = '100+ years';
+                        }
+                        
+                        document.getElementById('timeToGoal').textContent = timeDisplay;
+                        
+                        // Add validation for futurePortfolioValue
+                        if (isNaN(futurePortfolioValue) || !isFinite(futurePortfolioValue)) {
+                            document.getElementById('futureValue').textContent = 'Error';
+                        } else {
+                            document.getElementById('futureValue').textContent = '$' + futurePortfolioValue.toLocaleString(undefined, {maximumFractionDigits: 0});
+                        }
+                        
+                        document.getElementById('monthlyNeeded').textContent = monthlyBTCNeeded.toFixed(8);
+                        
+                        arrResults.style.display = 'block';
+                    } else {
+                        arrResults.style.display = 'none';
+                    }
+                } else {
+                    arrResults.style.display = 'none';
+                }
                 
                 // Show results section
                 document.getElementById('resultsSection').style.display = 'block';
